@@ -1,0 +1,39 @@
+const mongoose = require('mongoose');
+
+const registrationSchema = new mongoose.Schema({
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  event: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+    required: true
+  },
+  teamName: {
+    type: String,
+    default: ''
+  },
+  teamMembersCount: {
+    type: Number,
+    default: 1
+  },
+  status: {
+    type: String,
+    enum: ['registered', 'cancelled', 'attended'],
+    default: 'registered'
+  },
+  qrCodeToken: {
+    type: String,
+    default: () => Math.random().toString(36).substring(2, 10).toUpperCase()
+  },
+  registeredAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { timestamps: true });
+
+registrationSchema.index({ student: 1, event: 1 }, { unique: true });
+
+module.exports = mongoose.model('Registration', registrationSchema);

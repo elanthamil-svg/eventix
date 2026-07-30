@@ -1,0 +1,350 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --kaggle-cyan: #20BEFF;
+    --kaggle-darkblue: #006185;
+    --kaggle-bg: #F8FAFD;
+    --kaggle-darkbg: #0F1117;
+    --kaggle-darkcard: #1A2332;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-inter);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-inter);
+    @apply bg-[#F8FAFD] text-slate-900 antialiased transition-colors duration-200;
+    letter-spacing: -0.01em;
+  }
+
+  .dark body {
+    background-color: #0F1117;
+    color: #E2E8F0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    font-family: var(--font-inter);
+  }
+}
+
+@layer utilities {
+  /* ─── Card System ──────────────────────────────────────── */
+  .kaggle-card {
+    @apply bg-white border border-slate-200 rounded-2xl transition-all duration-200;
+    font-family: var(--font-inter);
+  }
+  .dark .kaggle-card {
+    background-color: #1A2332;
+    border-color: #253047;
+  }
+
+  .kaggle-card-hover {
+    @apply hover:border-[#20BEFF]/50 hover:shadow-[0_4px_24px_rgba(32,190,255,0.08)];
+  }
+
+  /* ─── Buttons ──────────────────────────────────────────── */
+  .kaggle-btn-primary {
+    @apply bg-[#20BEFF] hover:bg-[#00A8E8] active:bg-[#008CC4] text-slate-950 font-bold px-4 py-2 rounded-full transition-all duration-150 flex items-center justify-center gap-2 text-sm shadow-sm hover:shadow-[0_4px_16px_rgba(32,190,255,0.35)];
+    font-family: var(--font-inter);
+  }
+
+  .kaggle-btn-secondary {
+    @apply bg-white dark:bg-[#1A2332] hover:bg-slate-50 dark:hover:bg-[#1E293B] text-slate-700 dark:text-slate-200 font-semibold px-4 py-2 rounded-full transition-all duration-150 flex items-center justify-center gap-2 text-sm border border-slate-200 dark:border-[#253047] hover:border-[#20BEFF]/40;
+    font-family: var(--font-inter);
+  }
+
+  .kaggle-btn-ghost {
+    @apply text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1E293B] font-medium px-3 py-1.5 rounded-xl transition-all duration-150 flex items-center gap-2 text-sm;
+  }
+
+  /* ─── Badges ────────────────────────────────────────────── */
+  .kaggle-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border;
+    font-family: var(--font-inter);
+    letter-spacing: 0.02em;
+  }
+
+  .kaggle-badge-cyan {
+    @apply bg-[#E6F8FF] text-[#006185] border-[#20BEFF]/30;
+  }
+  .dark .kaggle-badge-cyan {
+    background-color: rgba(32, 190, 255, 0.12);
+    color: #20BEFF;
+    border-color: rgba(32, 190, 255, 0.25);
+  }
+
+  .kaggle-badge-emerald {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-500/30;
+  }
+  .dark .kaggle-badge-emerald {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+  }
+
+  .kaggle-badge-amber {
+    @apply bg-amber-50 text-amber-700 border-amber-500/30;
+  }
+  .dark .kaggle-badge-amber {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+  }
+
+  .kaggle-badge-rose {
+    @apply bg-rose-50 text-rose-700 border-rose-500/30;
+  }
+  .dark .kaggle-badge-rose {
+    background-color: rgba(244, 63, 94, 0.12);
+    color: #fb7185;
+  }
+
+  .kaggle-badge-purple {
+    @apply bg-purple-50 text-purple-700 border-purple-500/30;
+  }
+  .dark .kaggle-badge-purple {
+    background-color: rgba(139, 92, 246, 0.12);
+    color: #a78bfa;
+  }
+
+  /* ─── Inputs ────────────────────────────────────────────── */
+  .kaggle-input {
+    @apply w-full px-4 py-2.5 bg-slate-50 dark:bg-[#0F1117] border border-slate-200 dark:border-[#253047] rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#20BEFF] focus:ring-1 focus:ring-[#20BEFF]/30 transition-all duration-150;
+    font-family: var(--font-inter);
+  }
+
+  /* ─── Hero Gradient ─────────────────────────────────────── */
+  .gradient-hero-kaggle {
+    background: radial-gradient(ellipse at 60% 0%, rgba(32, 190, 255, 0.10) 0%, rgba(0, 138, 188, 0.04) 50%, transparent 80%);
+  }
+
+  /* ─── Section Divider ───────────────────────────────────── */
+  .kaggle-divider {
+    @apply border-t border-slate-100 dark:border-[#253047];
+  }
+
+  /* ─── AI Pulse ──────────────────────────────────────────── */
+  .ai-pulse-dot {
+    @apply w-2 h-2 rounded-full bg-[#20BEFF] animate-pulse;
+    box-shadow: 0 0 0 3px rgba(32, 190, 255, 0.2);
+  }
+
+  /* ─── Score Bar ─────────────────────────────────────────── */
+  .score-bar {
+    @apply h-1.5 rounded-full bg-slate-100 dark:bg-[#253047] overflow-hidden;
+  }
+  .score-bar-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-[#20BEFF] to-[#00A8E8] transition-all duration-700 ease-out;
+  }
+
+  /* ─── Shimmer Loading ───────────────────────────────────── */
+  .shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite;
+  }
+  .dark .shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+    background-size: 200% 100%;
+  }
+
+  /* ─── Role Card ─────────────────────────────────────────── */
+  .role-card {
+    @apply relative cursor-pointer rounded-2xl border-2 p-6 text-center transition-all duration-200 hover:scale-[1.02] hover:shadow-xl;
+  }
+  .role-card-selected {
+    @apply border-[#20BEFF] shadow-[0_0_0_4px_rgba(32,190,255,0.15)];
+  }
+  .role-card-unselected {
+    @apply border-slate-200 dark:border-[#253047] hover:border-[#20BEFF]/50;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scoreReveal {
+  from { stroke-dashoffset: 326; }
+  to   { stroke-dashoffset: var(--target-offset); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(32,190,255,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(32,190,255,0); }
+}
+
+@keyframes glowPulseGreen {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+}
+
+@keyframes glowPulseAmber {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
+}
+
+@keyframes glowPulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+}
+
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+@keyframes scanLine {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  20%  { opacity: 0.6; }
+  80%  { opacity: 0.6; }
+  100% { transform: translateY(400%); opacity: 0; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out both;
+}
+
+.animate-count-up {
+  animation: countUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-float {
+  animation: floatUp 3s ease-in-out infinite;
+}
+
+/* ─── AI Module Cards ─────────────────────────────────────── */
+.ai-glass-card {
+  background: linear-gradient(135deg, rgba(32,190,255,0.06) 0%, rgba(15,17,23,0.4) 100%);
+  border: 1px solid rgba(32,190,255,0.2);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+}
+
+.ai-gradient-card {
+  background: linear-gradient(135deg,
+    rgba(32,190,255,0.08) 0%,
+    rgba(139,92,246,0.04) 50%,
+    rgba(16,185,129,0.04) 100%
+  );
+  border: 1px solid rgba(32,190,255,0.15);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-gradient-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(32,190,255,0.5), transparent);
+}
+
+/* ─── Safety Status Glows ────────────────────────────────── */
+.safety-glow-green {
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.3), 0 4px 24px rgba(16,185,129,0.15);
+}
+.safety-glow-amber {
+  box-shadow: 0 0 0 1px rgba(245,158,11,0.3), 0 4px 24px rgba(245,158,11,0.15);
+}
+.safety-glow-red {
+  box-shadow: 0 0 0 1px rgba(239,68,68,0.3), 0 4px 24px rgba(239,68,68,0.15);
+}
+
+/* ─── Metric Tile ────────────────────────────────────────── */
+.metric-tile {
+  background: rgba(15,17,23,0.06);
+  border: 1px solid rgba(100,116,139,0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: all 0.2s;
+}
+.dark .metric-tile {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.06);
+}
+.metric-tile:hover {
+  border-color: rgba(32,190,255,0.25);
+  background: rgba(32,190,255,0.04);
+}
+
+/* ─── Carousel ───────────────────────────────────────────── */
+.rec-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.rec-carousel::-webkit-scrollbar { display: none; }
+.rec-carousel-item {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+}
+
+/* ─── AI Scan Line ───────────────────────────────────────── */
+.ai-scan-line::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(32,190,255,0.6), transparent);
+  animation: scanLine 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ─── Kaggle Scrollbars ─────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #2D3748;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4A5568;
+}
