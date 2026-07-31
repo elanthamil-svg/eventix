@@ -46,41 +46,65 @@ const callGemini = async (prompt) => {
  * @returns {Array} [{ eventId, score, reason }]
  */
 const recommendEvents = async (userProfile, availableEvents) => {
-  const interestList = (userProfile.interests || []).join(', ') || 'Engineering';
+  const interestList = (userProfile.interests || []).join(', ') || 'Engineering & Technology';
   const skillList = (userProfile.skills || []).join(', ') || 'General';
+  const dept = userProfile.department || 'Computer Science & Engineering';
+  const year = userProfile.year || '3rd Year';
 
   const eventsJson = JSON.stringify(
     availableEvents.map(e => ({
       id: (e._id || e.id)?.toString(),
       title: e.title,
       category: e.category,
-      tags: e.tags || [],
+      tags: (e.tags || []).join(', '),
       college: e.collegeName,
-      description: (e.description || '').substring(0, 120)
+      entryFee: e.entryFee || 0,
+      prizePool: e.prizePool || 'N/A',
+      description: (e.description || '').substring(0, 200)
     })), null, 2
   );
 
-  const prompt = `You are CampusConnect AI — an intelligent inter-college event recommendation engine for Indian college students.
+  const prompt = `You are Eventix AI — an expert inter-college fest and competition recommendation engine for Indian undergraduate students. Your recommendations must be HIGHLY ACCURATE, TRANSPARENT, and PERSONALIZED based on deep analysis of the student profile.
 
-Student:
-- Department: ${userProfile.department || 'Computer Science'}
-- Year: ${userProfile.year || '3rd Year'}
-- Interests: ${interestList}
-- Skills: ${skillList}
+=== STUDENT PROFILE ===
+Department: ${dept}
+Year of Study: ${year}
+Interests: ${interestList}
+Technical Skills: ${skillList}
 
-Events (JSON):
+=== SCORING RUBRIC (compute each component accurately) ===
+1. Interest Match (0-40 pts): Direct/semantic alignment with student's interests.
+2. Skill Applicability (0-25 pts): Requires or rewards student's specific technical skills.
+3. Year Suitability (0-15 pts): Event difficulty/nature matches student's year level.
+4. Department Alignment (0-15 pts): Academic fit for the student's department.
+5. Growth Opportunity (0-5 pts): Prize pool, host college prestige, or networking value.
+
+Total score = interest + skills + year + department + opportunity. Minimum 35, maximum 98.
+
+=== EVENTS TO RANK ===
 ${eventsJson}
 
-Task: Rank ALL events by relevance to the student. For each event, write a 1-2 sentence personalized reason starting with "Recommended because this event matches your interests in...".
+=== TASK ===
+For EVERY event in the list above, compute an accurate score using the rubric above. Write a 2-sentence personalized reason explaining WHY this specific student should or should not prioritize this event. Higher scores go to events that align closely with the student's interests, skills, and department. Events with NO relevance should score 35-50.
 
-Respond with ONLY a raw JSON array (no markdown code blocks, no explanation):
+=== OUTPUT FORMAT ===
+Respond with ONLY a raw JSON array. No markdown, no code fences, no text outside the array:
 [
   {
-    "eventId": "evt_101",
-    "score": 97,
-    "reason": "Recommended because this event matches your interests in Artificial Intelligence and Python. HackNova 2026 at IIT Madras provides a 36-hour competitive environment."
+    "eventId": "<exact id from the events list>",
+    "score": <integer 35-98>,
+    "reason": "Recommended because this event directly matches your interest in <specific interest>. As a <year> student in <dept>, <specific benefit of attending this event>.",
+    "scoreBreakdown": {
+      "interest": <0-40>,
+      "skills": <0-25>,
+      "year": <0-15>,
+      "department": <0-15>,
+      "opportunity": <0-5>
+    }
   }
-]`;
+]
+
+Order results from highest score to lowest. Include ALL events.`;
 
   try {
     console.log(`🤖 Calling Gemini for live recommendations (interests: ${interestList})`);

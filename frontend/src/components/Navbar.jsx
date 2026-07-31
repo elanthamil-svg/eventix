@@ -94,6 +94,21 @@ export default function Navbar({ onToggleSidebar }) {
             </Link>
           )}
 
+          {role === 'student' && (
+            <Link 
+              to="/ai-match" 
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-all ${
+                isActive('/ai-match') 
+                  ? 'text-white shadow-sm' 
+                  : 'text-kaggle-cyan hover:bg-kaggle-cyan/10'
+              }`}
+              style={isActive('/ai-match') ? { background: 'linear-gradient(90deg,#20BEFF,#8B5CF6)' } : {}}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>AI Match Fest</span>
+            </Link>
+          )}
+
           <Link 
             to="/events" 
             className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${

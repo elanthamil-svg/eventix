@@ -5,7 +5,6 @@ import {
   Wrench, Award, ShieldCheck, Zap, TrendingUp
 } from 'lucide-react';
 import EventCard from '../components/EventCard';
-import AIRecommendationSection from '../components/AIRecommendationSection';
 import api, { MOCK_EVENTS } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -239,11 +238,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* ─── AI Recommendation Section (Standalone Live) ────────── */}
-      <div style={{ borderTop: '1px solid rgba(32,190,255,0.1)', paddingTop: 24 }}>
-        <AIRecommendationSection />
       </div>
 
     </div>

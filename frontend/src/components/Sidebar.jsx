@@ -81,15 +81,22 @@ export default function Sidebar({ isOpen }) {
               </Link>
 
               <Link
-                to="/dashboard?tab=recommendations"
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                  location.search.includes('recommendations') 
-                    ? 'bg-kaggle-lightcyan/60 dark:bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan font-bold' 
+                to="/ai-match"
+                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  isActive('/ai-match')
+                    ? 'bg-gradient-to-r from-kaggle-cyan to-purple-500 text-white shadow-md'
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
+                style={isActive('/ai-match') ? {} : {}}
               >
-                <Sparkles className="w-5 h-5 text-kaggle-cyan" />
-                <span>AI Matched Fests</span>
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 text-kaggle-cyan" />
+                  <span>AI Match Fest</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-black uppercase"
+                  style={{ background: 'rgba(32,190,255,0.12)', color: '#20BEFF', border: '1px solid rgba(32,190,255,0.25)' }}>
+                  NEW
+                </span>
               </Link>
             </>
           )}

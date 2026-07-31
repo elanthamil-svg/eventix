@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, LayoutGrid, List, Sparkles, X, Trophy } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
-import AIRecommendationSection from '../components/AIRecommendationSection';
 import api, { MOCK_EVENTS } from '../services/api';
 
 const CATEGORIES = ['All', 'Hackathon', 'Workshop', 'Symposium', 'Coding', 'AI', 'Robotics', 'Design'];
@@ -218,11 +217,6 @@ export default function EventsPage() {
           </div>
         </div>
       )}
-
-      {/* ─── AI Recommendation Section ─────────────────────────── */}
-      <div style={{ borderTop: '1px solid rgba(32,190,255,0.1)', paddingTop: 24, marginTop: 16 }}>
-        <AIRecommendationSection />
-      </div>
 
     </div>
   );

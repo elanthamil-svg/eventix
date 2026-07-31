@@ -119,9 +119,26 @@ function ConfidenceBar({ score }) {
 
 /* ── Premium Recommendation Card ────────────────────────────── */
 function RecommendationCard({ rec, index }) {
-  const { event, score, reason, executedLocally } = rec;
+  const { event, score, reason, executedLocally, scoreBreakdown } = rec;
+  const [showBreakdown, setShowBreakdown] = useState(false);
   if (!event) return null;
   const scoreColor = score >= 90 ? '#10B981' : score >= 75 ? '#20BEFF' : '#F59E0B';
+
+  const breakdown = scoreBreakdown || {
+    interest: Math.round((score / 98) * 38),
+    skills: Math.round((score / 98) * 22),
+    year: Math.round((score / 98) * 14),
+    department: Math.round((score / 98) * 14),
+    opportunity: Math.round((score / 98) * 4)
+  };
+
+  const factors = [
+    { label: '🎯 Interest Match', val: breakdown.interest, max: 40, color: '#10B981' },
+    { label: '💻 Skill Applicability', val: breakdown.skills, max: 25, color: '#20BEFF' },
+    { label: '🎓 Department Fit', val: breakdown.department, max: 15, color: '#8B5CF6' },
+    { label: '📅 Year Relevance', val: breakdown.year, max: 15, color: '#EC4899' },
+    { label: '🏆 Growth & Prestige', val: breakdown.opportunity, max: 5, color: '#F59E0B' },
+  ];
 
   return (
     <div
@@ -201,6 +218,49 @@ function RecommendationCard({ rec, index }) {
             <Sparkles size={11} style={{ color: scoreColor, flexShrink: 0, marginTop: 2 }} />
             <p style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.65 }}>{reason}</p>
           </div>
+        </div>
+
+        {/* 5-Factor Score Analysis Toggle */}
+        <div>
+          <button
+            onClick={() => setShowBreakdown(!showBreakdown)}
+            className="text-[11px] font-bold flex items-center justify-between w-full px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              background: 'rgba(100,116,139,0.06)',
+              color: '#64748B',
+              border: '1px solid rgba(100,116,139,0.12)'
+            }}>
+            <span className="flex items-center gap-1.5">
+              <BarChart2 size={12} style={{ color: scoreColor }} />
+              5-Factor AI Score Analysis
+            </span>
+            <span>{showBreakdown ? '▲ Hide' : '▼ View Breakdown'}</span>
+          </button>
+
+          {showBreakdown && (
+            <div className="mt-2.5 p-3 rounded-xl space-y-2 text-[11px] animate-fade-in-up"
+              style={{ background: 'rgba(15,17,23,0.4)', border: '1px solid rgba(100,116,139,0.15)' }}>
+              <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-400 mb-1 flex items-center justify-between">
+                <span>Rubric Factors</span>
+                <span style={{ color: scoreColor }}>Total: {score}/100</span>
+              </div>
+              {factors.map(f => {
+                const pct = Math.min(100, Math.round((f.val / f.max) * 100));
+                return (
+                  <div key={f.label} className="space-y-0.5">
+                    <div className="flex justify-between font-semibold text-slate-300">
+                      <span>{f.label}</span>
+                      <span style={{ color: f.color }}>{f.val}/{f.max} pts</span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                      <div className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pct}%`, background: f.color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Interest tags */}

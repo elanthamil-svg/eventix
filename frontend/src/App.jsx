@@ -12,6 +12,7 @@ import StudentDashboardPage from './pages/StudentDashboardPage';
 import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AuthPage from './pages/AuthPage';
+import AIMatchPage from './pages/AIMatchPage';
 
 // ─── Auth-Protected Route wrapper ───────────────────────────────
 function ProtectedRoute({ children, allowedRoles }) {
@@ -45,6 +46,14 @@ function AppShell() {
             <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
             <Route path="/events/:id" element={<ProtectedRoute><EventDetailsPage /></ProtectedRoute>} />
+            <Route
+              path="/ai-match"
+              element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <AIMatchPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard"
               element={

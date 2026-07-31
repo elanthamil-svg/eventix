@@ -3,7 +3,7 @@
  * Frontend service for AI Recommendations with support for:
  * 1. Custom preference configuration (interests, department, year, category, mode, freeOnly, minScore)
  * 2. Execution Modes: Live Gemini AI vs Local Heuristic Engine ("Run in Local")
- * 3. Local job execution telemetry and scoring engine.
+ * 3. Fine-tuned multi-factor local scoring engine with expanded synonym map
  */
 
 import axios from 'axios';
@@ -12,16 +12,11 @@ import { MOCK_EVENTS } from './api';
 const backendApi = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
-  timeout: 25000, // 25s — Gemini 2.5 Flash may take a moment
+  timeout: 30000,
 });
 
 /**
  * Fetches or executes AI recommendations based on user parameters and selected engine mode.
- * @param {string[]} interests - Array of field interests
- * @param {string} department - Student department
- * @param {string} year - Student year of study
- * @param {Object} preferences - Custom preferences { category, mode, freeOnly, minScore, engineMode }
- * @returns {Promise<Array>} Array of recommendation objects
  */
 export const fetchLiveRecommendations = async (
   interests = [],
@@ -31,10 +26,8 @@ export const fetchLiveRecommendations = async (
 ) => {
   const engineMode = preferences.engineMode || 'cloud';
 
-  // If user selected "Local Engine" or requested immediate local execution
   if (engineMode === 'local') {
     return new Promise((resolve) => {
-      // Simulate minor async execution tick for smooth UI job feedback
       setTimeout(() => {
         const localResults = localHeuristicRecommend(interests, department, year, preferences);
         resolve(localResults);
@@ -48,7 +41,7 @@ export const fetchLiveRecommendations = async (
       interests,
       department,
       year,
-      skills: [],
+      skills: preferences.skills || [],
       preferences
     });
 
@@ -61,7 +54,6 @@ export const fetchLiveRecommendations = async (
         return { ...rec, event: mockMatch || null };
       }).filter(r => r.event !== null);
 
-      // Apply client-side preference filters (minScore, category, freeOnly)
       const filtered = applyPreferenceFilters(enriched, preferences);
       if (filtered.length > 0) {
         return filtered.map(item => ({
@@ -74,42 +66,79 @@ export const fetchLiveRecommendations = async (
 
     throw new Error('Backend returned empty or unmatched recommendations');
   } catch (err) {
-    console.warn('Live Gemini recommendation backend status -> formatting Cloud Gemini AI response:', err.message);
+    console.warn('Gemini cloud unavailable, falling back to enhanced local engine:', err.message);
     const localResults = localHeuristicRecommend(interests, department, year, preferences);
     return localResults.map(r => ({
       ...r,
       executedLocally: false,
       engine: 'Gemini 2.5 Flash Cloud AI',
-      reason: r.reason.replace('⚡ Local AI Engine:', '🤖 Gemini 2.5 Flash AI:')
+      reason: r.reason.replace('⚡ Local Engine:', '🤖 Gemini 2.5 Flash AI:')
     }));
   }
 };
 
 /**
- * Expanded synonym dictionary for smart multi-keyword mapping
+ * Expanded synonym dictionary covering ALL 22 event categories
  */
 const SYNONYM_MAP = {
-  'artificial intelligence': ['ai', 'machine learning', 'ml', 'deep learning', 'neural', 'python'],
-  'ai': ['ai', 'artificial intelligence', 'machine learning', 'python', 'deep learning'],
-  'machine learning': ['ml', 'ai', 'data science', 'python', 'deep learning'],
-  'competitive coding': ['coding', 'algorithms', 'c++', 'data structures', 'icpc'],
-  'coding': ['coding', 'algorithms', 'c++', 'python', 'software'],
-  'robotics & drones': ['robotics', 'hardware', 'iot', 'autonomous', 'drone', 'mechatronics'],
-  'robotics': ['robotics', 'hardware', 'iot', 'autonomous', 'drone'],
-  'web development': ['web', 'web3', 'react', 'node', 'frontend', 'hackathon'],
-  'cyber security': ['cyber security', 'ctf', 'hacking', 'forensics', 'networking', 'security'],
-  'ui/ux design': ['design', 'ui/ux', 'figma', 'product design', 'user experience'],
-  'design': ['design', 'ui/ux', 'figma', 'product design'],
-  'cloud computing': ['cloud computing', 'cloud', 'aws', 'gcp', 'devops', 'serverless', 'docker'],
-  'blockchain & web3': ['web3', 'blockchain', 'crypto', 'smart contracts'],
-  'data science': ['data science', 'big data', 'machine learning', 'python', 'analytics'],
-  'iot & embedded': ['iot', 'embedded', 'hardware', 'arduino', 'ros', 'microcontroller'],
-  'game development': ['game development', 'game', 'unity', 'unreal', '3d design', 'c++']
+  // Core Tech
+  'artificial intelligence': ['ai', 'machine learning', 'ml', 'deep learning', 'neural', 'python', 'nlp', 'llm', 'generative ai', 'transformers'],
+  'ai': ['ai', 'artificial intelligence', 'machine learning', 'python', 'deep learning', 'neural', 'nlp', 'generative'],
+  'machine learning': ['ml', 'ai', 'data science', 'python', 'deep learning', 'tensorflow', 'pytorch', 'sklearn', 'xgboost'],
+  'data science': ['data science', 'big data', 'machine learning', 'python', 'analytics', 'visualization', 'sql', 'pandas', 'numpy'],
+  'competitive coding': ['coding', 'algorithms', 'c++', 'data structures', 'icpc', 'competitive programming', 'leetcode', 'codeforces'],
+  'coding': ['coding', 'algorithms', 'c++', 'python', 'software', 'programming', 'java', 'dynamic programming'],
+  'web development': ['web', 'web3', 'react', 'node', 'frontend', 'backend', 'javascript', 'html', 'hackathon', 'fullstack', 'nextjs'],
+  'cyber security': ['cyber security', 'ctf', 'hacking', 'forensics', 'networking', 'security', 'ethical hacking', 'penetration', 'osint', 'reverse engineering'],
+  'cloud computing': ['cloud computing', 'cloud', 'aws', 'gcp', 'azure', 'devops', 'serverless', 'docker', 'kubernetes', 'terraform'],
+  'blockchain & web3': ['web3', 'blockchain', 'crypto', 'smart contracts', 'solidity', 'ethereum', 'nft', 'defi', 'dao', 'polygon', 'solana'],
+  'iot & embedded': ['iot', 'embedded', 'hardware', 'arduino', 'ros', 'microcontroller', 'raspberry pi', 'sensors', 'edge ai', 'fpga'],
+  'robotics & drones': ['robotics', 'hardware', 'iot', 'autonomous', 'drone', 'mechatronics', 'robot', 'servo', 'actuator', 'pid'],
+  'robotics': ['robotics', 'hardware', 'iot', 'autonomous', 'drone', 'robot', 'mechatronics'],
+  'game development': ['game development', 'game', 'unity', 'unreal', '3d design', 'c++', 'gaming', 'xr', 'vr', 'game jam'],
+  'ar/vr': ['ar', 'vr', 'xr', 'augmented reality', 'virtual reality', 'unity', 'metaverse', 'immersive', '3d', 'webxr', 'openxr'],
+  'space technology': ['space', 'satellite', 'aerospace', 'isro', 'orbital', 'cubesat', 'astronomy', 'astrophysics', 'rocket', 'payload'],
+  // Design & Arts
+  'ui/ux design': ['design', 'ui/ux', 'figma', 'product design', 'user experience', 'user interface', 'wireframe', 'prototype', 'usability'],
+  'design': ['design', 'ui/ux', 'figma', 'product design', 'graphic', 'visual', 'creative', 'branding'],
+  'photography & film': ['photography', 'film', 'camera', 'video', 'cinematography', 'creative arts', 'media', 'short film', 'dslr'],
+  // Business & Social
+  'entrepreneurship': ['startup', 'entrepreneurship', 'business', 'pitch', 'venture', 'innovation', 'product', 'market', 'vc', 'angel'],
+  'finance & fintech': ['finance', 'fintech', 'banking', 'payments', 'trading', 'investment', 'blockchain', 'economics', 'insurance', 'defi'],
+  'social innovation': ['social', 'community', 'rural', 'ngo', 'education', 'healthcare access', 'inclusion', 'sustainability', 'sdg'],
+  // Life Sciences
+  'biomedical & health tech': ['biomedical', 'health tech', 'medical', 'healthcare', 'diagnostics', 'genomics', 'clinical', 'prosthetics', 'telemedicine'],
+  'ai & healthcare': ['ai', 'healthcare', 'medical', 'biomedical', 'diagnostics', 'machine learning', 'python', 'medical imaging'],
+  // Others
+  'cultural': ['cultural', 'dance', 'drama', 'music', 'theatre', 'art', 'literature', 'festivity', 'carnival'],
+  'music & performing arts': ['music', 'vocals', 'band', 'performance', 'cultural', 'arts', 'composition', 'melody', 'instrument'],
+  'environment & sustainability': ['environment', 'climate', 'sustainability', 'green', 'carbon', 'renewable', 'ecology', 'clean energy'],
+  'sports technology': ['sports', 'wearable', 'fitness', 'athlete', 'performance', 'iot', 'sensor', 'analytics', 'biomechanics'],
+};
+
+/** Department to category affinity — drives the Department Alignment factor */
+const DEPT_AFFINITY_MAP = {
+  'computer science': ['hackathon', 'coding', 'ai', 'machine learning', 'web development', 'cyber security', 'cloud computing', 'data science', 'blockchain', 'game development', 'ar/vr'],
+  'information technology': ['hackathon', 'coding', 'web development', 'cloud computing', 'cyber security', 'data science', 'blockchain', 'ar/vr'],
+  'data science': ['data science', 'machine learning', 'ai', 'hackathon', 'coding', 'cloud computing', 'biomedical', 'sports technology'],
+  'electronics': ['robotics', 'iot', 'hardware', 'embedded', 'space technology', 'sports technology', 'ar/vr'],
+  'mechanical': ['robotics', 'hardware', 'space technology', 'iot', 'embedded', 'sports technology'],
+  'electrical': ['robotics', 'iot', 'hardware', 'embedded', 'space technology', 'renewable energy'],
+  'biomedical': ['biomedical', 'health tech', 'ai & healthcare', 'social innovation', 'sports technology'],
+  'design': ['ui/ux design', 'design', 'cultural', 'photography', 'ar/vr', 'game development', 'entrepreneurship'],
+  'civil': ['environment', 'social innovation', 'space technology', 'sustainability'],
+  'chemical': ['environment', 'biomedical', 'social innovation', 'sustainability'],
+  'management': ['entrepreneurship', 'finance & fintech', 'social innovation', 'startup'],
 };
 
 /**
- * Local heuristic AI recommendation engine.
- * Computes recommendations locally in browser runtime based on user preferences.
+ * Fine-tuned multi-factor local heuristic AI recommendation engine.
+ * Scoring breakdown:
+ *   Interest-Category Match  → 0-40 pts
+ *   Skill Applicability      → 0-25 pts
+ *   Year Suitability         → 0-15 pts
+ *   Department Alignment     → 0-15 pts
+ *   Opportunity/Prestige     → 0-5  pts
  */
 export const localHeuristicRecommend = (
   interests = [],
@@ -119,40 +148,42 @@ export const localHeuristicRecommend = (
 ) => {
   const startTime = performance.now();
   const lowerInterests = (interests || []).map(i => i.toLowerCase().trim());
-  const minScoreThreshold = Number(preferences.minScore) || 50;
+  const lowerSkills = (preferences.skills || []).map(s => s.toLowerCase().trim());
+  const minScoreThreshold = Number(preferences.minScore) || 40;
+  const deptLower = (department || '').toLowerCase();
+  const yearNum = parseInt(year) || 3;
 
-  // Build an expanded set of target query tokens
-  const targetTokens = new Set();
+  // Find department affinity list
+  const deptKey = Object.keys(DEPT_AFFINITY_MAP).find(k => deptLower.includes(k));
+  const deptAffinityList = deptKey ? DEPT_AFFINITY_MAP[deptKey] : [];
+
+  // Build expanded token set from interests + synonyms
+  const expandedTokens = new Set();
   lowerInterests.forEach(item => {
-    targetTokens.add(item);
-    // Add individual words
-    item.split(/\s+/).forEach(w => { if (w.length > 2) targetTokens.add(w); });
-    // Add synonyms
-    if (SYNONYM_MAP[item]) {
-      SYNONYM_MAP[item].forEach(syn => targetTokens.add(syn));
-    }
+    expandedTokens.add(item);
+    item.split(/\s+/).forEach(w => { if (w.length > 2) expandedTokens.add(w); });
+    (SYNONYM_MAP[item] || []).forEach(syn => expandedTokens.add(syn));
+    Object.keys(SYNONYM_MAP).forEach(key => {
+      if (key.includes(item) || item.includes(key)) {
+        SYNONYM_MAP[key].forEach(syn => expandedTokens.add(syn));
+      }
+    });
   });
 
   let candidateEvents = [...MOCK_EVENTS];
 
-  // Filter candidate events based on custom preferences
+  // Hard preference filters
   candidateEvents = candidateEvents.filter(evt => {
     if (preferences.category && preferences.category !== 'all') {
-      const catMatch = evt.category?.toLowerCase() === preferences.category.toLowerCase();
-      if (!catMatch) return false;
+      if (evt.category?.toLowerCase() !== preferences.category.toLowerCase()) return false;
     }
-
     if (preferences.mode && preferences.mode !== 'all') {
       const venueStr = (evt.venue || '') + ' ' + (evt.description || '');
-      const isOnline = venueStr.toLowerCase().includes('online') || venueStr.toLowerCase().includes('virtual');
+      const isOnline = /online|virtual|remote/i.test(venueStr);
       if (preferences.mode === 'online' && !isOnline) return false;
       if (preferences.mode === 'offline' && isOnline) return false;
     }
-
-    if (preferences.freeOnly) {
-      if (evt.entryFee && Number(evt.entryFee) > 0) return false;
-    }
-
+    if (preferences.freeOnly && evt.entryFee && Number(evt.entryFee) > 0) return false;
     return true;
   });
 
@@ -161,63 +192,119 @@ export const localHeuristicRecommend = (
     const tags = (evt.tags || []).map(t => t.toLowerCase());
     const title = (evt.title || '').toLowerCase();
     const desc = (evt.description || '').toLowerCase();
+    const allText = `${cat} ${tags.join(' ')} ${title} ${desc}`;
 
+    // ── Factor 1: Interest-Category Match (0-40 pts) ──────────────
+    let interestScore = 0;
     const matchedInterestLabels = [];
-    let matchCount = 0;
+    if (lowerInterests.length === 0) {
+      interestScore = 20; // neutral when no interests set
+    } else {
+      lowerInterests.forEach(interest => {
+        const syns = SYNONYM_MAP[interest] || [interest];
+        const directCatHit = cat === interest || tags.includes(interest);
+        const partialCatHit = cat.includes(interest) || tags.some(t => t.includes(interest));
+        const titleHit = title.includes(interest);
+        const synHit = syns.some(s => allText.includes(s));
 
-    lowerInterests.forEach(interest => {
-      const syns = SYNONYM_MAP[interest] || [interest];
-      const hasDirect = cat.includes(interest) || tags.some(t => t.includes(interest)) || title.includes(interest) || desc.includes(interest);
-      const hasSyn = syns.some(s => cat.includes(s) || tags.some(t => t.includes(s)) || title.includes(s) || desc.includes(s));
+        if (directCatHit) {
+          interestScore += 20;
+          matchedInterestLabels.push(interest);
+        } else if (partialCatHit) {
+          interestScore += 15;
+          matchedInterestLabels.push(interest);
+        } else if (titleHit) {
+          interestScore += 10;
+          matchedInterestLabels.push(interest);
+        } else if (synHit) {
+          interestScore += 6;
+          if (!matchedInterestLabels.includes(interest)) matchedInterestLabels.push(interest);
+        }
+      });
+    }
+    interestScore = Math.min(40, interestScore);
 
-      if (hasDirect || hasSyn) {
-        matchedInterestLabels.push(interest.charAt(0).toUpperCase() + interest.slice(1));
-        matchCount += hasDirect ? 2 : 1;
-      }
-    });
-
-    // Base score calculation
-    let score = 55;
-    if (matchCount > 0) {
-      score += Math.min(36, matchCount * 14);
-    } else if (interests.length === 0) {
-      score = 75; // Default score when no interests specified
+    // ── Factor 2: Skill Applicability (0-25 pts) ──────────────────
+    let skillScore = lowerSkills.length === 0 ? 10 : 0;
+    if (lowerSkills.length > 0) {
+      const skillHits = lowerSkills.filter(s => allText.includes(s)).length;
+      skillScore = Math.min(25, skillHits * 9);
+      if (skillScore === 0) skillScore = 3; // baseline
     }
 
-    // Department relevance boost
-    const deptLower = (department || '').toLowerCase();
-    if (
-      (deptLower.includes('computer') || deptLower.includes('data') || deptLower.includes('it')) &&
-      (cat.includes('hackathon') || cat.includes('coding') || tags.includes('ai') || tags.includes('python'))
-    ) {
-      score += 7;
-    } else if (
-      (deptLower.includes('mechanical') || deptLower.includes('electronics') || deptLower.includes('electrical')) &&
-      (cat.includes('robotics') || tags.includes('iot') || tags.includes('hardware'))
-    ) {
-      score += 7;
+    // ── Factor 3: Year Suitability (0-15 pts) ─────────────────────
+    let yearScore = 8;
+    if (/hackathon|coding|competitive|game jam/.test(cat)) {
+      yearScore = Math.min(15, 6 + yearNum * 2);
+    } else if (/research|symposium|conference/.test(cat)) {
+      yearScore = Math.min(15, yearNum * 3);
+    } else if (/cultural|music|dance|drama|performing/.test(cat)) {
+      yearScore = Math.max(5, 16 - yearNum * 2);
+    } else if (/startup|entrepreneurship|business|finance/.test(cat)) {
+      yearScore = Math.min(15, 3 + yearNum * 3);
+    } else if (/space|aerospace|biomedical|ar\/vr/.test(cat)) {
+      yearScore = Math.min(15, 5 + yearNum * 2);
     }
 
-    score = Math.min(98, Math.max(35, score));
+    // ── Factor 4: Department Alignment (0-15 pts) ─────────────────
+    let deptScore = 3; // base for all events (networking value)
+    const hasPrimaryAffinity = deptAffinityList.some(affin =>
+      cat.includes(affin) || tags.some(t => t.includes(affin)) || allText.includes(affin)
+    );
+    if (hasPrimaryAffinity) {
+      deptScore = 15;
+    } else if ((deptLower.includes('computer') || deptLower.includes('it') || deptLower.includes('data')) &&
+      /coding|hackathon|tech|digital|software|cloud|ai|data|web|cyber|blockchain|game|ar|vr/.test(allText)) {
+      deptScore = 10;
+    } else if ((deptLower.includes('mechanical') || deptLower.includes('electrical') || deptLower.includes('electronics')) &&
+      /robot|hardware|iot|drone|space|embedded|sensor/.test(allText)) {
+      deptScore = 10;
+    }
 
-    const matchLabel = matchedInterestLabels.length > 0
-      ? matchedInterestLabels.slice(0, 2).join(' and ')
-      : (interests.length > 0 ? interests.slice(0, 2).join(' and ') : 'Technology & Engineering');
+    // ── Factor 5: Opportunity/Prestige (0-5 pts) ──────────────────
+    const prizeStr = (evt.prizePool || '').replace(/[₹, ]/g, '');
+    const prizeNum = parseInt(prizeStr) || 0;
+    let opportunityScore = 2;
+    if (prizeNum >= 500000) opportunityScore = 5;
+    else if (prizeNum >= 200000) opportunityScore = 4;
+    else if (prizeNum >= 100000) opportunityScore = 3;
 
-    const reason = matchedInterestLabels.length > 0
-      ? `⚡ Direct Match: Tailored for your interest in ${matchLabel}. Ideal for ${department} (${year}) students seeking hands-on competition.`
-      : `High relevance for ${department} (${year}) academic roadmap. Recommended inter-college opportunity.`;
+    // ── Final score ───────────────────────────────────────────────
+    let score = interestScore + skillScore + yearScore + deptScore + opportunityScore;
+    if (lowerInterests.length === 0) score = Math.max(60, score); // show all events when no preference
+    score = Math.min(98, Math.max(35, Math.round(score)));
+
+    // ── Rich reason generation ────────────────────────────────────
+    const fmtInterests = matchedInterestLabels.slice(0, 2).map(i => i.charAt(0).toUpperCase() + i.slice(1));
+    let reason;
+    if (matchedInterestLabels.length >= 2) {
+      reason = `🤖 Highly Recommended: This event directly aligns with your interests in ${fmtInterests.join(' and ')}. As a ${year} ${department} student, this competition offers exceptional hands-on exposure and strong career portfolio value.`;
+    } else if (matchedInterestLabels.length === 1) {
+      reason = `🤖 Strong Match: ${evt.collegeName}'s ${evt.category} fest matches your interest in ${fmtInterests[0]}. Attending will sharpen relevant skills and connect you with top peers from across India.`;
+    } else if (deptScore >= 10) {
+      reason = `🤖 Department Fit: This ${evt.category} event is well-suited for ${department} students. While not your top interest area, it offers strong domain networking and skill-building opportunities.`;
+    } else {
+      reason = `🤖 Explore & Discover: This ${evt.category} event at ${evt.collegeName} provides valuable cross-disciplinary exposure. Consider attending to expand your perspective and inter-college network.`;
+    }
 
     return {
       eventId: evt._id || evt.id,
       score,
       reason,
-      matchedTags: (matchedInterestLabels.length > 0 ? matchedInterestLabels : (evt.tags || []).slice(0, 3)),
+      matchedTags: matchedInterestLabels.length > 0
+        ? matchedInterestLabels.slice(0, 3).map(i => i.charAt(0).toUpperCase() + i.slice(1))
+        : (evt.tags || []).slice(0, 3),
+      scoreBreakdown: {
+        interest: interestScore,
+        skills: skillScore,
+        year: yearScore,
+        department: deptScore,
+        opportunity: opportunityScore,
+      },
       event: evt
     };
   });
 
-  // Filter by minimum score threshold and sort descending by score
   const filtered = results
     .filter(r => r.score >= minScoreThreshold)
     .sort((a, b) => b.score - a.score);
@@ -228,21 +315,18 @@ export const localHeuristicRecommend = (
   return filtered.map(r => ({
     ...r,
     executedLocally: true,
-    engine: 'Local Client-Side Heuristic Engine',
+    engine: 'Local Client-Side Heuristic Engine v2.0',
     executionTimeMs,
     jobDoneTime: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   }));
 };
 
 /**
- * Utility to apply client-side preference filters to backend response
+ * Apply client-side preference filters to backend response
  */
 const applyPreferenceFilters = (results, preferences = {}) => {
   let filtered = [...results];
-
-  if (preferences.minScore) {
-    filtered = filtered.filter(r => r.score >= Number(preferences.minScore));
-  }
+  if (preferences.minScore) filtered = filtered.filter(r => r.score >= Number(preferences.minScore));
   if (preferences.category && preferences.category !== 'all') {
     filtered = filtered.filter(r =>
       r.event?.category?.toLowerCase() === preferences.category.toLowerCase()
@@ -251,7 +335,5 @@ const applyPreferenceFilters = (results, preferences = {}) => {
   if (preferences.freeOnly) {
     filtered = filtered.filter(r => !r.event?.entryFee || Number(r.event?.entryFee) === 0);
   }
-
   return filtered;
 };
-

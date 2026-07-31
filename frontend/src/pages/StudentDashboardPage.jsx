@@ -7,7 +7,6 @@ import {
   GraduationCap, Star, Plus, X, Camera, Sparkles
 } from 'lucide-react';
 import api, { MOCK_EVENTS } from '../services/api';
-import AIRecommendationSection from '../components/AIRecommendationSection';
 
 const SKILL_SUGGESTIONS = [
   'Python', 'JavaScript', 'React', 'Node.js', 'Java', 'C++', 'Machine Learning',
@@ -134,7 +133,6 @@ export default function StudentDashboardPage() {
 
   const TABS = [
     { key: 'profile', label: '👤 Profile & Settings', count: null },
-    { key: 'recommendations', label: '🤖 AI Recommendations & Local Engine', count: null },
     { key: 'registrations', label: `🏆 Registered Events`, count: registrations.length },
     { key: 'notifications', label: `🔔 Notifications`, count: notifications.length }
   ];
@@ -222,62 +220,6 @@ export default function StudentDashboardPage() {
       {/* ─── Tab: Profile Settings ────────────────────────────── */}
       {activeTab === 'profile' && (
         <div className="space-y-6 animate-fade-in-up">
-
-          {/* ─── AI Recommendations Hero Teaser ─────────────────── */}
-          <div className="relative rounded-2xl overflow-hidden p-5"
-            style={{
-              background: 'linear-gradient(135deg, rgba(32,190,255,0.1) 0%, rgba(139,92,246,0.06) 50%, rgba(16,185,129,0.05) 100%)',
-              border: '1px solid rgba(32,190,255,0.22)'
-            }}>
-            {/* Glowing orb */}
-            <div className="absolute top-0 right-0 w-56 h-56 pointer-events-none"
-              style={{ background: 'radial-gradient(circle, rgba(32,190,255,0.1) 0%, transparent 70%)', transform: 'translate(30%,-30%)' }} />
-
-            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl" style={{ background: 'rgba(32,190,255,0.12)', border: '1px solid rgba(32,190,255,0.25)' }}>
-                  <Sparkles size={22} style={{ color: '#20BEFF' }} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <h2 className="text-slate-900 dark:text-white" style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em' }}>
-                      Recommended for You
-                    </h2>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black" style={{ background: '#20BEFF', color: '#0F1117' }}>AI</span>
-                  </div>
-                  <p style={{ fontSize: 12, color: '#64748B' }}>
-                    Personalized events matched to your interests, department & year
-                  </p>
-
-                  {/* Preview match chips */}
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {[
-                      { label: 'HackNova 2026', score: 97, color: '#10B981' },
-                      { label: 'RoboQuest 2.0', score: 89, color: '#20BEFF' },
-                      { label: 'CyberShield CTF', score: 84, color: '#8B5CF6' },
-                    ].map(({ label, score, color }) => (
-                      <div key={label} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-                        style={{ background: `${color}12`, border: `1px solid ${color}25`, color }}>
-                        <span>{label}</span>
-                        <span style={{ opacity: 0.8 }}>{score}% match</span>
-                      </div>
-                    ))}
-                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-                      style={{ background: 'rgba(100,116,139,0.08)', color: '#64748B' }}>+ more</div>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setActiveTab('recommendations')}
-                className="kaggle-btn-primary text-xs px-6 py-2.5 shrink-0"
-                style={{ borderRadius: 12 }}>
-                <Sparkles size={14} /> View AI Recommendations
-              </button>
-            </div>
-          </div>
-
-
           <div className="kaggle-card p-6 space-y-5">
             <div className="flex items-center gap-3 pb-4" style={{ borderBottom: '1px solid rgba(32,190,255,0.1)' }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -483,12 +425,6 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* ─── Tab: AI Recommendations & Local Engine ────────────── */}
-      {activeTab === 'recommendations' && (
-        <div className="space-y-6 animate-fade-in-up">
-          <AIRecommendationSection />
-        </div>
-      )}
 
       {/* ─── Tab: Registered Events ──────────────────────────── */}
       {activeTab === 'registrations' && (
