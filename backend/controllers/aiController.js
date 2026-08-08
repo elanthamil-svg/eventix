@@ -143,6 +143,33 @@ exports.getAccommodationRecommendations = async (req, res) => {
   }
 };
 
+// @desc    Chat with AI about a specific event
+// @route   POST /api/ai/chat
+exports.chatWithEventAI = async (req, res) => {
+  try {
+    const { eventId, message, history } = req.body;
+    
+    let event = null;
+    try {
+      const Event = require('../models/Event');
+      event = await Event.findById(eventId);
+    } catch (_e) {}
+    
+    if (!event) {
+      event = SEED_EVENTS.find(e => (e._id || e.id)?.toString() === eventId?.toString());
+    }
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    const reply = await geminiService.eventChatbot(event, message, history);
+    res.json({ success: true, reply });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Built-in seed events used when MongoDB is offline
 const SEED_EVENTS = [
   {
@@ -430,5 +457,136 @@ const SEED_EVENTS = [
     entryFee: 200,
     prizePool: '₹2,20,000',
     status: 'approved'
+  },
+  {
+    _id: 'evt_123',
+    title: 'Tathva 2026: South India\'s Premier National Techno-Management Fest',
+    description: 'Hosted by NIT Calicut, Tathva features AI Hackathons, Transporter Robot Wars, Cloud Computing Workshops, Autonomous Racing, and Paper Presentations across 50+ engineering colleges.',
+    category: 'Hackathon',
+    tags: ['Hackathon', 'AI', 'Robotics', 'Cloud Computing', 'Coding', 'South India', 'Kerala'],
+    collegeName: 'National Institute of Technology Calicut (NITC)',
+    venue: 'NIT Calicut OAT & Main Campus Complex',
+    eventDate: '2026-10-16T09:00:00.000Z',
+    entryFee: 0,
+    prizePool: '₹7,50,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_124',
+    title: 'Kurukshetra 2026: UNESCO Patronized International Tech Fest',
+    description: 'Anna University\'s battle of brains — featuring Speed Coding, AI Innovation Arena, Autonomous Racing, and Guest Keynotes from top global tech pioneers.',
+    category: 'Coding',
+    tags: ['Coding', 'Algorithms', 'AI', 'UNESCO', 'Anna University', 'South India', 'Tamil Nadu'],
+    collegeName: 'College of Engineering Guindy, Anna University',
+    venue: 'Vivekananda Auditorium & CEG Campus',
+    eventDate: '2026-09-28T09:00:00.000Z',
+    entryFee: 200,
+    prizePool: '₹12,00,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_125',
+    title: 'Kriya 2026: Global Student Engineering & Tech Summit',
+    description: 'Organised by PSG Tech Students Union, Kriya brings 40+ engineering challenges, IoT Edge Computing Hackathons, EV Powertrain Design, and Industrial Automation events.',
+    category: 'IoT & Embedded',
+    tags: ['IoT & Embedded', 'Hardware', 'Robotics', 'EV Tech', 'PSG Tech', 'South India', 'Coimbatore'],
+    collegeName: 'PSG College of Technology',
+    venue: 'PSG Tech Quadrangle & Assembly Hall',
+    eventDate: '2026-10-09T09:30:00.000Z',
+    entryFee: 250,
+    prizePool: '₹6,00,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_126',
+    title: 'Invente 6.0: National Level Tech Symposium & Hackathon',
+    description: 'SSN\'s premier tech fest with Web Dev Sprints, AI Model Showcases, Cyber CTF Battles, and Bio-Tech Paper Presentations.',
+    category: 'Web Development',
+    tags: ['Web Development', 'AI', 'Cyber Security', 'SSN', 'South India', 'Chennai'],
+    collegeName: 'SSN College of Engineering',
+    venue: 'SSN Auditorium & CSE Block',
+    eventDate: '2026-11-14T09:00:00.000Z',
+    entryFee: 150,
+    prizePool: '₹4,00,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_127',
+    title: 'Felicity 2026: IIIT Hyderabad Annual Techno-Cultural Festival',
+    description: 'Featuring Threads Competitive Programming, AI LLM Hackathon, GameDev Jams, and Pro Night Music Performances.',
+    category: 'AI & Healthcare',
+    tags: ['AI', 'Coding', 'Machine Learning', 'Game Development', 'IIIT Hyderabad', 'South India', 'Telangana'],
+    collegeName: 'IIIT Hyderabad',
+    venue: 'Felicity Ground & Nilgiri Block',
+    eventDate: '2026-10-23T10:00:00.000Z',
+    entryFee: 0,
+    prizePool: '₹8,00,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_128',
+    title: 'Atmos 2026: BITS Pilani Hyderabad Techno-Management Fest',
+    description: 'High-octane Drone Racing League, Quadcopter Autonomous Challenges, Algorithmic Trading Arena, and AI Prompt Engineering Sprints.',
+    category: 'Robotics',
+    tags: ['Robotics', 'Drones', 'Finance & FinTech', 'AI', 'BITS Pilani', 'South India', 'Hyderabad'],
+    collegeName: 'BITS Pilani Hyderabad Campus',
+    venue: 'BITS Auditorium & Tech Lawns',
+    eventDate: '2026-11-06T09:30:00.000Z',
+    entryFee: 200,
+    prizePool: '₹5,00,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_129',
+    title: 'Incident 2026: National Beachside Techno-Cultural Extravaganza',
+    description: 'NITK Surathkal\'s iconic beachside fest featuring Coastal Hackathons, Battle of the Bands, Fine Arts, and Pro Nights right on the Arabian Sea coast.',
+    category: 'Cultural',
+    tags: ['Cultural', 'Music & Performing Arts', 'Beachside Fest', 'NITK Surathkal', 'South India', 'Karnataka'],
+    collegeName: 'NITK Surathkal',
+    venue: 'NITK Beach Pavilion & OAT',
+    eventDate: '2026-12-05T09:00:00.000Z',
+    entryFee: 300,
+    prizePool: '₹4,50,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_130',
+    title: '8th Mile 2026: RVCE Inter-Collegiate Smart Tech Festival',
+    description: 'RVCE Bengaluru\'s flagship event focused on Smart City IoT Nodes, EV Battery Prototypes, CleanTech Solutions, and Speed Hackathons.',
+    category: 'Hackathon',
+    tags: ['Hackathon', 'IoT & Embedded', 'CleanTech', 'RVCE', 'South India', 'Bengaluru'],
+    collegeName: 'RV College of Engineering (RVCE)',
+    venue: 'RVCE Main Auditorium & Tech Park',
+    eventDate: '2026-11-22T09:00:00.000Z',
+    entryFee: 100,
+    prizePool: '₹5,50,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_131',
+    title: 'Kuruksastra 2026: National Cultural & Design Festival',
+    description: 'SASTRA University\'s grand cultural spectacle bringing together classical music, dance, short film, digital art, and UI/UX design challenges.',
+    category: 'Cultural',
+    tags: ['Cultural', 'Design', 'UI/UX', 'Music & Performing Arts', 'SASTRA', 'South India', 'Thanjavur'],
+    collegeName: 'SASTRA Deemed University',
+    venue: 'SASTRA Campus Auditorium',
+    eventDate: '2026-10-04T09:30:00.000Z',
+    entryFee: 200,
+    prizePool: '₹3,50,000',
+    status: 'approved'
+  },
+  {
+    _id: 'evt_132',
+    title: 'Dhwani 2026: Premier Technical & Cultural Carnival',
+    description: 'College of Engineering Trivandrum\'s signature fest with Choreonite, Short Film Contest, Algorithmic Coding Marathons, and Pro Nights in Kerala\'s capital.',
+    category: 'Cultural',
+    tags: ['Cultural', 'Photography & Film', 'Coding', 'CET Trivandrum', 'South India', 'Kerala'],
+    collegeName: 'College of Engineering Trivandrum (CET)',
+    venue: 'CET Amphitheatre & PG Block',
+    eventDate: '2026-11-26T09:00:00.000Z',
+    entryFee: 150,
+    prizePool: '₹4,00,000',
+    status: 'approved'
   }
 ];
+

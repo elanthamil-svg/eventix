@@ -66,13 +66,13 @@ export const fetchLiveRecommendations = async (
 
     throw new Error('Backend returned empty or unmatched recommendations');
   } catch (err) {
-    console.warn('Gemini cloud unavailable, falling back to enhanced local engine:', err.message);
+    console.warn('Gemini cloud unavailable, falling back to local engine:', err.message);
+    // ✅ FIX: correctly mark fallback results as local — not Cloud AI
     const localResults = localHeuristicRecommend(interests, department, year, preferences);
     return localResults.map(r => ({
       ...r,
-      executedLocally: false,
-      engine: 'Gemini 2.5 Flash Cloud AI',
-      reason: r.reason.replace('⚡ Local Engine:', '🤖 Gemini 2.5 Flash AI:')
+      executedLocally: true,
+      engine: 'Local Heuristic Engine v2.0',
     }));
   }
 };
@@ -82,8 +82,8 @@ export const fetchLiveRecommendations = async (
  */
 const SYNONYM_MAP = {
   // Core Tech
-  'artificial intelligence': ['ai', 'machine learning', 'ml', 'deep learning', 'neural', 'python', 'nlp', 'llm', 'generative ai', 'transformers'],
-  'ai': ['ai', 'artificial intelligence', 'machine learning', 'python', 'deep learning', 'neural', 'nlp', 'generative'],
+  'artificial intelligence': ['ai', 'machine learning', 'ml', 'deep learning', 'neural', 'python', 'nlp', 'llm', 'generative ai', 'transformers', 'hackathon', 'coding', 'tech', 'symposium'],
+  'ai': ['ai', 'artificial intelligence', 'machine learning', 'python', 'deep learning', 'neural', 'nlp', 'generative', 'hackathon', 'coding', 'tech'],
   'machine learning': ['ml', 'ai', 'data science', 'python', 'deep learning', 'tensorflow', 'pytorch', 'sklearn', 'xgboost'],
   'data science': ['data science', 'big data', 'machine learning', 'python', 'analytics', 'visualization', 'sql', 'pandas', 'numpy'],
   'competitive coding': ['coding', 'algorithms', 'c++', 'data structures', 'icpc', 'competitive programming', 'leetcode', 'codeforces'],
@@ -184,6 +184,11 @@ export const localHeuristicRecommend = (
       if (preferences.mode === 'offline' && isOnline) return false;
     }
     if (preferences.freeOnly && evt.entryFee && Number(evt.entryFee) > 0) return false;
+    if (preferences.region === 'south') {
+      const locationStr = `${evt.collegeName} ${evt.venue} ${(evt.tags || []).join(' ')} ${evt.location?.city || ''} ${evt.location?.address || ''}`.toLowerCase();
+      const isSouth = /kerala|tamil nadu|karnataka|telangana|andhra|chennai|coimbatore|kozhikode|bengaluru|bangalore|hyderabad|trivandrum|thiruvananthapuram|mangaluru|surathkal|vellore|thanjavur|amrita|nitc|psg|ssn|ceg|iiit|bits|nitk|rvce|sastra|cet|iit madras|vvit/i.test(locationStr);
+      if (!isSouth) return false;
+    }
     return true;
   });
 
@@ -192,7 +197,10 @@ export const localHeuristicRecommend = (
     const tags = (evt.tags || []).map(t => t.toLowerCase());
     const title = (evt.title || '').toLowerCase();
     const desc = (evt.description || '').toLowerCase();
-    const allText = `${cat} ${tags.join(' ')} ${title} ${desc}`;
+    const college = (evt.collegeName || '').toLowerCase();
+    const allText = `${cat} ${tags.join(' ')} ${title} ${desc} ${college}`;
+
+    const isSouthFest = /kerala|tamil nadu|karnataka|telangana|andhra|chennai|coimbatore|kozhikode|bengaluru|bangalore|hyderabad|trivandrum|mangaluru|surathkal|vellore|thanjavur|nitc|psg|ssn|ceg|iiit|bits|nitk|rvce|sastra|cet|amrita|iitm/i.test(allText);
 
     // ── Factor 1: Interest-Category Match (0-40 pts) ──────────────
     let interestScore = 0;
@@ -201,24 +209,34 @@ export const localHeuristicRecommend = (
       interestScore = 20; // neutral when no interests set
     } else {
       lowerInterests.forEach(interest => {
+        // All synonyms for this interest
         const syns = SYNONYM_MAP[interest] || [interest];
+        // Check category and tags (exact/partial)
         const directCatHit = cat === interest || tags.includes(interest);
         const partialCatHit = cat.includes(interest) || tags.some(t => t.includes(interest));
+        // Check title
         const titleHit = title.includes(interest);
+        // Check full text (including description) using expanded synonyms
         const synHit = syns.some(s => allText.includes(s));
+        // Also check using the expandedTokens set (covers cross-references)
+        const expandedHit = [...expandedTokens].some(token => allText.includes(token));
 
         if (directCatHit) {
-          interestScore += 20;
+          interestScore += 22;
           matchedInterestLabels.push(interest);
         } else if (partialCatHit) {
-          interestScore += 15;
+          interestScore += 16;
           matchedInterestLabels.push(interest);
         } else if (titleHit) {
-          interestScore += 10;
+          interestScore += 12;
           matchedInterestLabels.push(interest);
         } else if (synHit) {
-          interestScore += 6;
+          // Synonym found in description/tags — strong signal
+          interestScore += 14;
           if (!matchedInterestLabels.includes(interest)) matchedInterestLabels.push(interest);
+        } else if (expandedHit) {
+          // Weak expanded match
+          interestScore += 6;
         }
       });
     }
@@ -261,13 +279,16 @@ export const localHeuristicRecommend = (
       deptScore = 10;
     }
 
-    // ── Factor 5: Opportunity/Prestige (0-5 pts) ──────────────────
+    // ── Factor 5: Opportunity & Regional Prestige (0-5 pts) ───────
     const prizeStr = (evt.prizePool || '').replace(/[₹, ]/g, '');
     const prizeNum = parseInt(prizeStr) || 0;
     let opportunityScore = 2;
     if (prizeNum >= 500000) opportunityScore = 5;
     else if (prizeNum >= 200000) opportunityScore = 4;
     else if (prizeNum >= 100000) opportunityScore = 3;
+    
+    // Regional South India bonus
+    if (isSouthFest) opportunityScore = Math.min(5, opportunityScore + 1);
 
     // ── Final score ───────────────────────────────────────────────
     let score = interestScore + skillScore + yearScore + deptScore + opportunityScore;
@@ -277,14 +298,16 @@ export const localHeuristicRecommend = (
     // ── Rich reason generation ────────────────────────────────────
     const fmtInterests = matchedInterestLabels.slice(0, 2).map(i => i.charAt(0).toUpperCase() + i.slice(1));
     let reason;
-    if (matchedInterestLabels.length >= 2) {
+    if (isSouthFest && matchedInterestLabels.length >= 1) {
+      reason = `🌴 Top South Indian Fest: ${evt.collegeName}'s ${evt.title} directly matches your interest in ${fmtInterests[0] || 'technology'}. Highly recommended for ${department} students across South Indian institutions.`;
+    } else if (matchedInterestLabels.length >= 2) {
       reason = `🤖 Highly Recommended: This event directly aligns with your interests in ${fmtInterests.join(' and ')}. As a ${year} ${department} student, this competition offers exceptional hands-on exposure and strong career portfolio value.`;
     } else if (matchedInterestLabels.length === 1) {
-      reason = `🤖 Strong Match: ${evt.collegeName}'s ${evt.category} fest matches your interest in ${fmtInterests[0]}. Attending will sharpen relevant skills and connect you with top peers from across India.`;
+      reason = `🤖 Strong Match: ${evt.collegeName}'s ${evt.category} fest matches your interest in ${fmtInterests[0]}. Attending will sharpen relevant skills and connect you with top peers.`;
     } else if (deptScore >= 10) {
-      reason = `🤖 Department Fit: This ${evt.category} event is well-suited for ${department} students. While not your top interest area, it offers strong domain networking and skill-building opportunities.`;
+      reason = `🤖 Department Fit: This ${evt.category} event at ${evt.collegeName} is well-suited for ${department} students, offering strong domain networking and skill-building opportunities.`;
     } else {
-      reason = `🤖 Explore & Discover: This ${evt.category} event at ${evt.collegeName} provides valuable cross-disciplinary exposure. Consider attending to expand your perspective and inter-college network.`;
+      reason = `🤖 Explore & Discover: This ${evt.category} event at ${evt.collegeName} provides valuable cross-disciplinary exposure. Consider attending to expand your inter-college network.`;
     }
 
     return {
@@ -305,9 +328,14 @@ export const localHeuristicRecommend = (
     };
   });
 
-  const filtered = results
+  let filtered = results
     .filter(r => r.score >= minScoreThreshold)
     .sort((a, b) => b.score - a.score);
+
+  // Fine-tuning fallback: If threshold filtering produces 0 results, return top ranked events regardless of minScore threshold
+  if (filtered.length === 0 && results.length > 0) {
+    filtered = [...results].sort((a, b) => b.score - a.score).slice(0, 6);
+  }
 
   const endTime = performance.now();
   const executionTimeMs = Math.round(endTime - startTime);

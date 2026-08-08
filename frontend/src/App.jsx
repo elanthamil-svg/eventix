@@ -39,7 +39,7 @@ function AppShell() {
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#F8FAFD', fontFamily: "'Inter', sans-serif" }}>
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="flex flex-1 max-w-7xl w-full mx-auto">
+      <div className="flex flex-1 w-full max-w-full px-2 sm:px-4 lg:px-6">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
           <Routes>

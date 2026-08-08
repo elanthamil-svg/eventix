@@ -69,7 +69,7 @@ function RiskRow({ label, severity }) {
     <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl"
       style={{ background: clr.bg }}>
       <span style={{ color: clr.text, flexShrink: 0 }}>{clr.icon}</span>
-      <span style={{ fontSize: 12, color: '#CBD5E1', fontWeight: 500 }}>{label}</span>
+      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{label}</span>
     </div>
   );
 }
@@ -79,57 +79,87 @@ function RiskRow({ label, severity }) {
    ══════════════════════════════════════════════════════════════ */
 export default function AISafetyScoreCard({ event, initialDistance = 35, compact = false }) {
   const [distance, setDistance] = useState(initialDistance);
+  const [travelTime, setTravelTime] = useState('evening'); // 'daytime' | 'evening' | 'night'
+  const [companion, setCompanion] = useState('group'); // 'solo' | 'group'
+  const [selectedTransport, setSelectedTransport] = useState('auto'); // 'auto' | 'train' | 'bus' | 'cab' | 'metro'
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState(null);
   const animatedScore = useCountUp(report?.score || 0, 1400, 400);
 
   /* ── Derive rich safety data from score + params ─────────── */
-  const buildReport = (score, status, reasons, advice, distVal) => {
+  const buildReport = (baseScore, status, reasons, advice, distVal, timeMode, companionMode, transportMode) => {
     const travelMins = Math.round(distVal * 1.4);
-    const hour = new Date().getHours();
-    const isNight = hour >= 20 || hour <= 5;
+    const isNight = timeMode === 'night';
+    const isEvening = timeMode === 'evening';
+    const isSolo = companionMode === 'solo';
 
-    let transport = 'Bus';
-    if (distVal > 150) transport = 'Train';
-    else if (distVal > 50) transport = 'Train';
-    else if (distVal > 25) transport = 'Bus';
-    else if (distVal > 10) transport = 'Auto';
-    else transport = 'Walk';
+    let transport = transportMode === 'auto'
+      ? (distVal > 100 ? 'Train' : distVal > 40 ? 'Bus' : distVal > 15 ? 'Metro' : 'Cab Pool')
+      : transportMode.toUpperCase();
 
-    const bestTime = score >= 80
-      ? 'Before 7:00 PM (Recommended)'
-      : score >= 60 ? 'Before 8:30 PM (Advised)' : 'Travel during daylight only';
+    // Recalculate granular score with dynamic interactive factors
+    let score = 96;
+    
+    // 1. Distance factor
+    if (distVal > 150) score -= 22;
+    else if (distVal > 80) score -= 14;
+    else if (distVal > 40) score -= 8;
+    else score -= 3;
 
-    const weather = distVal > 100 ? 'Partly Cloudy, 28°C' : 'Clear Sky, 26°C';
+    // 2. Travel timing factor
+    if (isNight) score -= 18;
+    else if (isEvening) score -= 7;
+    else score += 2; // daytime boost
+
+    // 3. Companion factor
+    if (isSolo) score -= 10;
+    else score += 5; // group safety boost
+
+    // 4. Transport factor
+    if (transport.includes('TRAIN') || transport.includes('METRO')) score += 4;
+    else if (transport.includes('CAB')) score += 3;
+
+    score = Math.max(35, Math.min(98, score));
+
+    const finalStatus = score >= 80 ? 'Safe' : score >= 60 ? 'Moderate' : 'High Risk';
+
+    const bestTime = timeMode === 'daytime'
+      ? 'Daylight Hours (Optimal)'
+      : timeMode === 'evening' ? 'Before 8:30 PM (Advised)' : 'Early Morning Departure Preferred';
+
+    const weather = distVal > 100 ? 'Partly Cloudy, 27°C' : 'Clear Sky, 25°C';
     const weatherIcon = distVal > 100 ? '⛅' : '☀️';
 
     const riskFactors = [];
     if (distVal > 100) riskFactors.push({ label: `Long distance journey (${distVal} km)`, severity: 'high' });
     else if (distVal > 50) riskFactors.push({ label: `Moderate distance (${distVal} km)`, severity: 'medium' });
-    else riskFactors.push({ label: `Short distance — manageable (${distVal} km)`, severity: 'low' });
+    else riskFactors.push({ label: `Short distance travel (${distVal} km)`, severity: 'low' });
 
-    if (isNight) riskFactors.push({ label: 'Late-night travel detected', severity: 'high' });
-    else riskFactors.push({ label: 'Daytime travel conditions', severity: 'low' });
+    if (isNight) riskFactors.push({ label: 'Late-night transit (> 9:00 PM)', severity: 'high' });
+    else if (isEvening) riskFactors.push({ label: 'Evening travel (6–9 PM)', severity: 'medium' });
+    else riskFactors.push({ label: 'Daylight travel (Optimal)', severity: 'low' });
 
-    if (score < 70) riskFactors.push({ label: 'Limited transport options at this hour', severity: 'medium' });
-    else riskFactors.push({ label: 'Multiple transport routes available', severity: 'low' });
+    if (isSolo) riskFactors.push({ label: 'Solo student travel', severity: 'medium' });
+    else riskFactors.push({ label: 'Group companion travel (2+ peers)', severity: 'low' });
 
     const tips = [
-      'Share your live location with an emergency contact before departure.',
-      `Book a verified ${transport.toLowerCase()} or campus cab pool in advance.`,
-      'Keep campus helpline number saved: 1800-XXX-XXXX.',
-      score < 75 ? 'Travel in groups of 2+ for added safety.' : 'Carry a fully charged power bank for the journey.',
+      'Share your live location with family & campus safety team.',
+      `Pre-book verified ${transport.toLowerCase()} or campus shuttle.`,
+      'Emergency Helplines: National 112 | Women Safety 1091 | Campus 1800-425-001',
+      isSolo ? 'Traveling solo: stay in well-lit public transit areas and stay connected.' : 'Group travel: keep team members in sight until arrival at destination.',
     ];
 
+    const aiExplanation = score >= 80
+      ? `Journey scored ${score}% (Safe). ${companionMode === 'group' ? 'Traveling in a group' : 'Daylight travel'} with ${transport.toLowerCase()} routes ensures a secure, low-risk return.`
+      : score >= 60
+      ? `Journey scored ${score}% (Moderate Risk). Distance (${distVal} km) and ${timeMode} travel require advance booking and location sharing.`
+      : `High-risk journey (${score}%). Late hours and long distance (${distVal} km). We strongly advise using campus hostel stay or overnight accommodation.`;
+
     return {
-      score, status, reasons, advice, transport, bestTime,
+      score, status: finalStatus, reasons, advice, transport, bestTime,
       weather, weatherIcon, travelMins, riskFactors, tips,
-      confidence: Math.min(98, score + 3),
-      aiExplanation: score >= 80
-        ? `Daytime travel, ${weather.toLowerCase()}, and ${transport.toLowerCase()} connectivity make this a low-risk journey.`
-        : score >= 60
-        ? `Moderate risk due to distance and timing. Plan early departure and book transport in advance.`
-        : `High-risk travel detected. Strongly advise arranging verified transport and traveling with companions.`
+      confidence: Math.min(98, score + 4),
+      aiExplanation
     };
   };
 
@@ -139,36 +169,36 @@ export default function AISafetyScoreCard({ event, initialDistance = 35, compact
       const res = await api.post('/ai/safety-score', {
         distanceKm: distVal,
         travelTimeMins: Math.round(distVal * 1.4),
-        eventEndTime: event?.endTime || '08:30 PM',
-        currentTime: '06:00 PM',
+        eventEndTime: travelTime === 'night' ? '10:30 PM' : travelTime === 'evening' ? '07:30 PM' : '04:00 PM',
+        currentTime: travelTime === 'night' ? '09:00 PM' : travelTime === 'evening' ? '06:00 PM' : '10:00 AM',
         weather: distVal > 100 ? 'Partly Cloudy' : 'Clear sky, 26°C',
-        transportAvailable: true
+        transportAvailable: true,
+        companion,
+        selectedTransport
       });
       if (res.data.success) {
         const d = res.data.data;
-        setReport(buildReport(d.score, d.status, d.reasons, d.advice, distVal));
+        setReport(buildReport(d.score, d.status, d.reasons, d.advice, distVal, travelTime, companion, selectedTransport));
       } else throw new Error('No data');
     } catch {
       // Heuristic fallback
-      let score = 95 - Math.round(distVal * 0.22);
-      if (event?.endTime?.includes('PM') && parseInt(event.endTime) >= 8) score -= 12;
-      score = Math.max(35, Math.min(98, score));
-      const status = score < 60 ? 'High Risk' : score < 80 ? 'Moderate' : 'Safe';
       const reasons = [
         `Transit distance: ${distVal} km via verified route`,
-        event?.endTime ? `Event concludes around ${event.endTime}` : 'Concludes during evening hours',
-        score >= 75 ? 'Multiple public transport options available' : 'Limited night transport — pre-book advised'
+        travelTime === 'night' ? 'Late night return journey (post 9 PM)' : 'Evening/daytime return journey',
+        companion === 'group' ? 'Protected group travel (2+ peers)' : 'Solo student journey',
+        selectedTransport !== 'auto' ? `Selected transit mode: ${selectedTransport}` : 'Auto-routed public transit'
       ];
-      const advice = score < 70
-        ? 'Travel with peers and use campus-verified cab pool services.'
-        : 'Share your live GPS location with your emergency contact.';
-      setReport(buildReport(score, status, reasons, advice, distVal));
+      const advice = companion === 'solo'
+        ? 'Share live GPS link with campus safety portal and travel via main transit routes.'
+        : 'Stay together as a group until reaching college campus or hostel.';
+      setReport(buildReport(85, 'Safe', reasons, advice, distVal, travelTime, companion, selectedTransport));
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchScore(distance); }, [distance, event]);
+  useEffect(() => { fetchScore(distance); }, [distance, travelTime, companion, selectedTransport, event]);
+
 
   if (!report && loading) return (
     <div className="kaggle-card p-8 flex flex-col items-center gap-4 justify-center min-h-[200px]">
@@ -244,13 +274,13 @@ export default function AISafetyScoreCard({ event, initialDistance = 35, compact
                 <span className="flex items-center gap-1.5" style={{ fontSize: 11, color: '#64748B' }}>
                   <span style={{ color: m.color }}>{m.icon}</span>{m.label}
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#CBD5E1' }}>{m.value}</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{m.value}</span>
               </div>
             ))}
           </div>
         </div>
         <div className="p-3 rounded-xl" style={{ background: `${sc.color}08`, border: `1px solid ${sc.border}` }}>
-          <p style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.6 }}>
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
             <span style={{ color: sc.color, fontWeight: 700 }}>AI: </span>{report.aiExplanation}
           </p>
         </div>
@@ -372,30 +402,77 @@ export default function AISafetyScoreCard({ event, initialDistance = 35, compact
               <div style={{ fontSize: 11, fontWeight: 800, color: sc.color, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
                 Gemini AI Analysis
               </div>
-              <p style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.7 }}>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
                 {report.aiExplanation}
               </p>
             </div>
           </div>
         </div>
 
-        {/* ─── Distance Slider ───────────────────────────────── */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <label style={{ fontSize: 12, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Simulate Travel Distance
-            </label>
-            <span style={{ fontSize: 14, fontWeight: 900, color: '#20BEFF' }}>{distance} km</span>
-          </div>
-          <div className="relative">
-            <input type="range" min="5" max="300" value={distance}
-              onChange={(e) => setDistance(Number(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-              style={{ background: `linear-gradient(to right, #20BEFF ${distance/3}%, rgba(100,116,139,0.2) ${distance/3}%)` }}
-            />
-          </div>
-          <div className="flex justify-between text-xs text-slate-400">
-            <span>5 km (Campus)</span><span>150 km (State)</span><span>300 km (National)</span>
+        {/* ─── Distance & Travel Parameters Control Grid ──────────────── */}
+        <div className="p-4 rounded-2xl space-y-4" style={{ background: 'rgba(15,23,42,0.04)', border: '1px solid rgba(100,116,139,0.12)' }}>
+
+          {/* Interactive Travel Parameters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+            {/* Travel Time Mode */}
+            <div>
+              <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                Travel Timing
+              </label>
+              <div className="flex rounded-xl p-1 gap-1" style={{ background: 'rgba(100,116,139,0.08)' }}>
+                {[
+                  { id: 'daytime', label: '☀️ Day' },
+                  { id: 'evening', label: '🌆 Eve' },
+                  { id: 'night', label: '🌙 Night' }
+                ].map(t => (
+                  <button key={t.id} onClick={() => setTravelTime(t.id)}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                      travelTime === t.id
+                        ? 'bg-kaggle-cyan text-slate-950 shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Companion Mode */}
+            <div>
+              <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                Companion Mode
+              </label>
+              <div className="flex rounded-xl p-1 gap-1" style={{ background: 'rgba(100,116,139,0.08)' }}>
+                {[
+                  { id: 'solo', label: '👤 Solo' },
+                  { id: 'group', label: '👥 Group (2+)' }
+                ].map(c => (
+                  <button key={c.id} onClick={() => setCompanion(c.id)}
+                    className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                      companion === c.id
+                        ? 'bg-kaggle-cyan text-slate-950 shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}>
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Transport Mode */}
+            <div>
+              <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                Transit Type
+              </label>
+              <select value={selectedTransport} onChange={(e) => setSelectedTransport(e.target.value)}
+                className="w-full py-1.5 px-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 outline-none">
+                <option value="auto">⚡ Auto Recommended</option>
+                <option value="train">🚆 Express Train</option>
+                <option value="bus">🚌 State Express Bus</option>
+                <option value="cab">🚕 Campus Cab Pool</option>
+                <option value="metro">🚇 Metro Rail</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -427,7 +504,7 @@ export default function AISafetyScoreCard({ event, initialDistance = 35, compact
               <div key={i} className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl"
                 style={{ background: 'rgba(100,116,139,0.05)', border: '1px solid rgba(100,116,139,0.1)' }}>
                 <div className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style={{ background: '#20BEFF' }} />
-                <span style={{ fontSize: 12, color: '#CBD5E1', fontWeight: 500, lineHeight: 1.6 }}>{r}</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-relaxed">{r}</span>
               </div>
             ))}
           </div>
@@ -446,7 +523,7 @@ export default function AISafetyScoreCard({ event, initialDistance = 35, compact
               <div key={i} className="flex items-start gap-2 px-3 py-2.5 rounded-xl"
                 style={{ background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.12)' }}>
                 <CheckCircle2 size={13} className="flex-shrink-0 mt-0.5" style={{ color: '#10B981' }} />
-                <span style={{ fontSize: 11.5, color: '#94A3B8', lineHeight: 1.6 }}>{tip}</span>
+                <span className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{tip}</span>
               </div>
             ))}
           </div>

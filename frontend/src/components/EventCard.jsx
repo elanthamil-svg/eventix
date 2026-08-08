@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Trophy, Bookmark, ShieldCheck, Users, Clock, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, Trophy, Bookmark, ShieldCheck, Users, Clock, Sparkles, Eye, ArrowRight } from 'lucide-react';
 
 export default function EventCard({ event, onBookmark, isBookmarked = false, matchReason }) {
   if (!event) return null;
@@ -119,6 +119,24 @@ export default function EventCard({ event, onBookmark, isBookmarked = false, mat
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Verified</span>
           </div>
+        </div>
+
+        {/* Action Buttons: View Details & Register Now */}
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/60 grid grid-cols-2 gap-2">
+          <Link
+            to={`/events/${event._id || event.id}`}
+            className="py-2.5 px-3 text-center text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-1.5"
+          >
+            <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+            <span>View Details</span>
+          </Link>
+          <Link
+            to={`/events/${event._id || event.id}?register=true`}
+            className="py-2.5 px-3 text-center text-xs font-extrabold rounded-xl bg-kaggle-cyan text-slate-950 hover:bg-kaggle-cyan/90 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+          >
+            <span>Register Now</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
       </div>

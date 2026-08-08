@@ -168,7 +168,7 @@ export default function HomePage() {
           </div>
 
           {/* Events Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {filteredEvents.map(evt => (
               <EventCard
                 key={evt._id || evt.id}
@@ -188,7 +188,7 @@ export default function HomePage() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="space-y-5">
+        <div className="space-y-5 lg:sticky lg:top-24 lg:self-start">
           {/* Safety highlight */}
           <div className="kaggle-card p-5 space-y-3"
             style={{ borderColor: 'rgba(16,185,129,0.2)', background: 'linear-gradient(135deg, rgba(16,185,129,0.03) 0%, transparent 60%)' }}>

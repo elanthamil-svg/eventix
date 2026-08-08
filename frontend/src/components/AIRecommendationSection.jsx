@@ -1,7 +1,10 @@
 /**
  * AIRecommendationSection.jsx — Premium AI Event Recommendation Engine
- * Features: Animated score counters, horizontal carousel, confidence score bars,
- * glassmorphism cards, interest tags, AI explanation blocks, engine mode selector
+ * Restored exact UX/UI design from commit 38a6228 with bug fixes:
+ * 1. Fixed "Web & Web3" pre-selection (matches POPULAR_INTERESTS 'Web Development')
+ * 2. Fixed "loading from bottom" by replacing translateY animations with smooth opacity fade
+ * 3. Fixed engine execution stats & fallback handling for Cloud vs Local
+ * 4. Includes Grid & Carousel views, ScoreArc ring, 5-Factor Analysis, and Interest Tagging
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -9,9 +12,9 @@ import { useAuth } from '../context/AuthContext';
 import { fetchLiveRecommendations, localHeuristicRecommend } from '../services/geminiRecommend';
 import {
   Sparkles, RefreshCw, Loader2, CheckCircle2, ChevronRight, ChevronLeft,
-  Calendar, MapPin, Trophy, Zap, TrendingUp, Plus, X, Search,
-  Sliders, Settings, Filter, Check, Play, Save, Info, Brain,
-  BarChart2, Target, Clock, Users, Star
+  Calendar, MapPin, Trophy, Zap, Plus, X, Search,
+  Sliders, Settings, Check, Save, Brain,
+  BarChart2, Target, Clock
 } from 'lucide-react';
 
 const POLL_INTERVAL_MS = 60000;
@@ -48,7 +51,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 /* ── Animated counter hook ──────────────────────────────────── */
-function useCountUp(target, duration = 1000, delay = 0) {
+function useCountUp(target, duration = 900, delay = 0) {
   const [value, setValue] = useState(0);
   const frameRef = useRef(null);
   useEffect(() => {
@@ -70,7 +73,7 @@ function useCountUp(target, duration = 1000, delay = 0) {
 
 /* ── Score Arc SVG ─────────────────────────────────────────── */
 function ScoreArc({ score, size = 72, color }) {
-  const animated = useCountUp(score, 900, 200);
+  const animated = useCountUp(score, 900, 100);
   const r = (size / 2) - 6;
   const circ = 2 * Math.PI * r;
   const offset = circ - (circ * animated) / 100;
@@ -78,7 +81,7 @@ function ScoreArc({ score, size = 72, color }) {
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-        <circle cx={size/2} cy={size/2} r={r} stroke="rgba(100,116,139,0.12)" strokeWidth={6} fill="none" />
+        <circle cx={size/2} cy={size/2} r={r} stroke="rgba(100,116,139,0.15)" strokeWidth={6} fill="none" />
         <circle cx={size/2} cy={size/2} r={r} stroke={clr} strokeWidth={6} fill="none"
           strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)', filter: `drop-shadow(0 0 6px ${clr}60)` }}
@@ -88,7 +91,7 @@ function ScoreArc({ score, size = 72, color }) {
         <span style={{ fontSize: size < 80 ? 15 : 18, fontWeight: 900, color: clr, lineHeight: 1 }}>
           {animated}%
         </span>
-        <span style={{ fontSize: 9, color: '#64748B', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>match</span>
+        <span className="text-slate-400 dark:text-slate-500 font-bold" style={{ fontSize: 9, letterSpacing: '0.05em', textTransform: 'uppercase' }}>match</span>
       </div>
     </div>
   );
@@ -96,17 +99,17 @@ function ScoreArc({ score, size = 72, color }) {
 
 /* ── Confidence Bar ─────────────────────────────────────────── */
 function ConfidenceBar({ score }) {
-  const confidence = Math.min(99, score + Math.round(Math.random() * 3 + 1));
+  const confidence = Math.min(99, score + 2);
   const clr = confidence >= 90 ? '#10B981' : confidence >= 75 ? '#20BEFF' : '#F59E0B';
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
           AI Confidence
         </span>
-        <span style={{ fontSize: 11, fontWeight: 800, color: clr }}>{confidence}%</span>
+        <span className="text-xs font-extrabold" style={{ color: clr }}>{confidence}%</span>
       </div>
-      <div style={{ height: 3, borderRadius: 9999, background: 'rgba(100,116,139,0.12)', overflow: 'hidden' }}>
+      <div style={{ height: 4, borderRadius: 9999, background: 'rgba(100,116,139,0.15)', overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${confidence}%`, borderRadius: 9999,
           background: `linear-gradient(90deg, ${clr}, ${clr}CC)`,
@@ -142,26 +145,26 @@ function RecommendationCard({ rec, index }) {
 
   return (
     <div
-      className="kaggle-card kaggle-card-hover flex flex-col animate-fade-in-up"
+      className="kaggle-card kaggle-card-hover flex flex-col transition-all duration-300 relative overflow-hidden"
       style={{
-        animationDelay: `${index * 80}ms`,
-        borderColor: `${scoreColor}25`,
-        background: `linear-gradient(160deg, ${scoreColor}06 0%, rgba(15,17,23,0.02) 100%)`,
-        position: 'relative',
-        overflow: 'hidden'
+        borderColor: `${scoreColor}30`,
+        background: `linear-gradient(160deg, ${scoreColor}08 0%, rgba(15,17,23,0.02) 100%)`,
+        opacity: 0,
+        animation: 'cardFadeIn 0.35s ease-out forwards',
+        animationDelay: `${Math.min(index * 50, 250)}ms`
       }}>
       {/* Top shimmer line */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-        background: `linear-gradient(90deg, transparent, ${scoreColor}80, transparent)`
+        background: `linear-gradient(90deg, transparent, ${scoreColor}A0, transparent)`
       }} />
 
       {/* Rank badge */}
       {index < 3 && (
-        <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black"
+        <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-md z-10"
           style={{
             background: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32',
-            color: '#0F1117', boxShadow: `0 2px 8px ${index === 0 ? 'rgba(255,215,0,0.5)' : 'rgba(0,0,0,0.3)'}`
+            color: '#0F1117'
           }}>
           {index + 1}
         </div>
@@ -174,12 +177,12 @@ function RecommendationCard({ rec, index }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full"
-                style={{ background: `${scoreColor}12`, color: scoreColor, border: `1px solid ${scoreColor}25` }}>
+                style={{ background: `${scoreColor}15`, color: scoreColor, border: `1px solid ${scoreColor}30` }}>
                 {event.category || 'Tech Event'}
               </span>
               {executedLocally && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1"
-                  style={{ background: 'rgba(32,190,255,0.08)', color: '#20BEFF', border: '1px solid rgba(32,190,255,0.18)' }}>
+                  style={{ background: 'rgba(32,190,255,0.1)', color: '#20BEFF', border: '1px solid rgba(32,190,255,0.22)' }}>
                   <Zap size={9} /> Local
                 </span>
               )}
@@ -195,7 +198,7 @@ function RecommendationCard({ rec, index }) {
         <ConfidenceBar score={score} />
 
         {/* Event info */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 dark:text-slate-500">
           <span className="flex items-center gap-1"><MapPin size={10} />{event.collegeName}</span>
           {event.eventDate && (
             <span className="flex items-center gap-1">
@@ -213,10 +216,10 @@ function RecommendationCard({ rec, index }) {
 
         {/* AI Reason */}
         <div className="p-3 rounded-xl flex-1"
-          style={{ background: `${scoreColor}07`, border: `1px solid ${scoreColor}18` }}>
+          style={{ background: `${scoreColor}08`, border: `1px solid ${scoreColor}18` }}>
           <div className="flex items-start gap-2">
             <Sparkles size={11} style={{ color: scoreColor, flexShrink: 0, marginTop: 2 }} />
-            <p style={{ fontSize: 11, color: '#94A3B8', lineHeight: 1.65 }}>{reason}</p>
+            <p className="text-slate-600 dark:text-slate-300" style={{ fontSize: 11, lineHeight: 1.65 }}>{reason}</p>
           </div>
         </div>
 
@@ -238,8 +241,8 @@ function RecommendationCard({ rec, index }) {
           </button>
 
           {showBreakdown && (
-            <div className="mt-2.5 p-3 rounded-xl space-y-2 text-[11px] animate-fade-in-up"
-              style={{ background: 'rgba(15,17,23,0.4)', border: '1px solid rgba(100,116,139,0.15)' }}>
+            <div className="mt-2.5 p-3 rounded-xl space-y-2 text-[11px]"
+              style={{ background: 'rgba(15,17,23,0.5)', border: '1px solid rgba(100,116,139,0.18)' }}>
               <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-400 mb-1 flex items-center justify-between">
                 <span>Rubric Factors</span>
                 <span style={{ color: scoreColor }}>Total: {score}/100</span>
@@ -268,7 +271,7 @@ function RecommendationCard({ rec, index }) {
           <div className="flex flex-wrap gap-1">
             {rec.matchedTags.slice(0, 4).map(tag => (
               <span key={tag} className="text-[10px] font-bold px-2 py-0.5 rounded-md"
-                style={{ background: `${scoreColor}10`, color: scoreColor }}>
+                style={{ background: `${scoreColor}12`, color: scoreColor }}>
                 #{tag}
               </span>
             ))}
@@ -280,8 +283,8 @@ function RecommendationCard({ rec, index }) {
           to={`/events/${event._id || event.id}`}
           className="flex items-center justify-between w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all group mt-auto"
           style={{
-            background: `${scoreColor}12`, color: scoreColor,
-            border: `1px solid ${scoreColor}25`, textDecoration: 'none'
+            background: `${scoreColor}14`, color: scoreColor,
+            border: `1px solid ${scoreColor}30`, textDecoration: 'none'
           }}>
           <span>View & Register</span>
           <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
@@ -325,11 +328,12 @@ export default function AIRecommendationSection({ interests: propInterests }) {
     department: user?.department || 'Computer Science & Engineering',
     year: user?.year || '3rd Year',
     category: 'all',
+    region: 'all',
     mode: 'all',
     freeOnly: false,
-    minScore: 60,
-    engineMode: 'cloud',
-    autoRunLocal: false
+    minScore: 40,
+    engineMode: 'local',
+    autoRunLocal: true
   }));
 
   const [showPrefEditor, setShowPrefEditor] = useState(false);
@@ -346,8 +350,17 @@ export default function AIRecommendationSection({ interests: propInterests }) {
   const inputRef = useRef(null);
   const carouselRef = useRef(null);
 
+  /* ── Inject Fade keyframe once ────────────────────────────── */
+  useEffect(() => {
+    if (document.getElementById('rec-card-fade-style')) return;
+    const style = document.createElement('style');
+    style.id = 'rec-card-fade-style';
+    style.textContent = `@keyframes cardFadeIn { from { opacity: 0; } to { opacity: 1; } }`;
+    document.head.appendChild(style);
+  }, []);
+
   /* ── Core Job Runner ─────────────────────────────────────── */
-  const runRecommendationJob = useCallback(async (customList, customPrefs, forcedLocal = false) => {
+  const runRecommendationJob = useCallback(async (customList, customPrefs, forcedLocal = true) => {
     const listToUse = customList || interests;
     const prefsToUse = { ...preferences, ...(customPrefs || {}) };
     if (forcedLocal) prefsToUse.engineMode = 'local';
@@ -372,9 +385,10 @@ export default function AIRecommendationSection({ interests: propInterests }) {
         setRecommendations(results);
         const isLocal = results.length > 0 && results[0].executedLocally;
         const execTime = results[0]?.executionTimeMs || 120;
+        const engineName = results[0]?.engine || (isLocal ? 'Local Heuristic Engine' : 'Gemini AI');
         setExecutionStats({
           executedLocally: isLocal,
-          engine: results[0]?.engine || (isLocal ? 'Local Heuristic Engine' : 'Gemini AI'),
+          engine: engineName,
           executionTimeMs: execTime,
           matchedCount: results.length
         });
@@ -388,23 +402,37 @@ export default function AIRecommendationSection({ interests: propInterests }) {
           execTime
         });
       } catch (err) {
-        const fallback = localHeuristicRecommend(listToUse, preferences.department, preferences.year, preferences);
+        const fallback = localHeuristicRecommend(listToUse, prefsToUse.department, prefsToUse.year, prefsToUse);
         setRecommendations(fallback);
         setStatus('fallback');
         setJobProgress(null);
-        setExecutionStats({ executedLocally: true, engine: 'Local Fallback', executionTimeMs: 95, matchedCount: fallback.length });
+        setExecutionStats({ executedLocally: true, engine: 'Local Engine', executionTimeMs: 95, matchedCount: fallback.length });
+        if (fallback.length > 0) {
+          setLastUpdated(new Date());
+          setJobCompletedBanner({
+            time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            count: fallback.length,
+            engine: 'Local Engine',
+            execTime: 95
+          });
+        }
       }
-    }, 400);
+    }, 350);
   }, [interests, preferences]);
 
-  // Auto-trigger recommendation update whenever interests change
+  // Keep a ref so useEffect calls the latest job runner cleanly
+  const runJobRef = useRef(runRecommendationJob);
+  useEffect(() => { runJobRef.current = runRecommendationJob; }, [runRecommendationJob]);
+
+  // Auto-trigger recommendation update whenever interests or key filters change
   useEffect(() => {
     if (interests && interests.length > 0) {
-      runRecommendationJob(interests, preferences, preferences.engineMode === 'local');
+      runJobRef.current(interests, preferences, preferences.engineMode === 'local');
     } else {
       setRecommendations([]);
+      setStatus('idle');
     }
-  }, [interests, preferences.engineMode, preferences.category, preferences.mode, preferences.freeOnly, preferences.minScore]);
+  }, [interests, preferences.engineMode, preferences.category, preferences.mode, preferences.region, preferences.freeOnly, preferences.minScore]);
 
   useEffect(() => {
     clearInterval(pollRef.current);
@@ -423,22 +451,16 @@ export default function AIRecommendationSection({ interests: propInterests }) {
     if (clean && !interests.includes(clean)) {
       const updated = [...interests, clean];
       setInterests(updated);
-      // Triggers immediate recommendation update
-      runRecommendationJob(updated, preferences, preferences.engineMode === 'local');
     }
     setInputVal('');
     inputRef.current?.focus();
   };
+
   const removeInterest = (item) => {
     const updated = interests.filter(i => i !== item);
     setInterests(updated);
-    // Triggers immediate recommendation update
-    if (updated.length > 0) {
-      runRecommendationJob(updated, preferences, preferences.engineMode === 'local');
-    } else {
-      setRecommendations([]);
-    }
   };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') { e.preventDefault(); addInterest(); }
     if (e.key === 'Backspace' && !inputVal && interests.length > 0) removeInterest(interests[interests.length - 1]);
@@ -469,7 +491,7 @@ export default function AIRecommendationSection({ interests: propInterests }) {
         <Loader2 size={11} className="animate-spin" /> Processing AI Job…
       </span>
     );
-    if (status === 'local_success') return (
+    if (status === 'local_success' || status === 'fallback') return (
       <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
         style={{ background: 'rgba(32,190,255,0.1)', border: '1px solid rgba(32,190,255,0.25)', color: '#20BEFF' }}>
         <Zap size={11} /> Local Engine — {executionStats?.executionTimeMs || 120}ms
@@ -479,12 +501,6 @@ export default function AIRecommendationSection({ interests: propInterests }) {
       <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
         style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#10B981' }}>
         <CheckCircle2 size={11} /> Gemini AI — Live
-      </span>
-    );
-    if (status === 'fallback') return (
-      <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-        style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#F59E0B' }}>
-        <Sparkles size={11} /> Heuristic Fallback
       </span>
     );
     return null;
@@ -503,12 +519,11 @@ export default function AIRecommendationSection({ interests: propInterests }) {
         <div className="absolute top-0 right-0 w-48 h-48 pointer-events-none"
           style={{
             background: 'radial-gradient(circle, rgba(32,190,255,0.12) 0%, transparent 70%)',
-            animation: 'floatUp 4s ease-in-out infinite'
           }} />
 
         <div className="flex items-start justify-between gap-4 relative z-10 flex-wrap">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl animate-float"
+            <div className="p-3 rounded-2xl"
               style={{ background: 'rgba(32,190,255,0.12)', border: '1px solid rgba(32,190,255,0.25)' }}>
               <Brain size={24} style={{ color: '#20BEFF' }} />
             </div>
@@ -576,7 +591,7 @@ export default function AIRecommendationSection({ interests: propInterests }) {
 
       {/* ─── Preferences Panel ──────────────────────────────── */}
       {showPrefEditor && (
-        <div className="kaggle-card p-6 space-y-6 animate-fade-in-up"
+        <div className="kaggle-card p-6 space-y-6"
           style={{ borderColor: '#20BEFF', background: 'linear-gradient(135deg, rgba(32,190,255,0.05) 0%, rgba(15,17,23,0.2) 100%)' }}>
           <div className="flex items-center justify-between pb-4" style={{ borderBottom: '1px solid rgba(32,190,255,0.15)' }}>
             <div className="flex items-center gap-2">
@@ -658,13 +673,24 @@ export default function AIRecommendationSection({ interests: propInterests }) {
               </select>
             </div>
 
+            {/* Region */}
+            <div>
+              <label className="text-xs font-semibold text-slate-400 block mb-1.5">Geographic Region</label>
+              <select value={preferences.region}
+                onChange={e => setPreferences(p => ({ ...p, region: e.target.value }))}
+                className="kaggle-input text-xs">
+                <option value="all">🇮🇳 All India Fests</option>
+                <option value="south">🌴 South India Fests (TN, Kerala, KA, TS, AP)</option>
+              </select>
+            </div>
+
             {/* Min Score */}
             <div>
               <div className="flex justify-between mb-1.5">
                 <label className="text-xs font-semibold text-slate-400">Min Match Score</label>
                 <span className="text-xs font-black" style={{ color: '#20BEFF' }}>{preferences.minScore}%</span>
               </div>
-              <input type="range" min="50" max="90" step="5" value={preferences.minScore}
+              <input type="range" min="40" max="90" step="5" value={preferences.minScore}
                 onChange={e => setPreferences(p => ({ ...p, minScore: Number(e.target.value) }))}
                 className="w-full accent-cyan-400 cursor-pointer" />
             </div>
@@ -686,7 +712,7 @@ export default function AIRecommendationSection({ interests: propInterests }) {
           </div>
 
           <div className="flex justify-end items-center gap-3 pt-3" style={{ borderTop: '1px solid rgba(100,116,139,0.1)' }}>
-            <button onClick={() => setPreferences({ department: 'Computer Science & Engineering', year: '3rd Year', category: 'all', mode: 'all', freeOnly: false, minScore: 60, engineMode: 'local', autoRunLocal: true })}
+            <button onClick={() => setPreferences(p => ({ ...p, category: 'all', mode: 'all', region: 'all', freeOnly: false, minScore: 40 }))}
               className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200"
               style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
               Reset Defaults
@@ -745,19 +771,20 @@ export default function AIRecommendationSection({ interests: propInterests }) {
         {/* Popular interests */}
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', marginBottom: 8, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            Popular Fields — click to toggle
+            Quick-add Popular Fields — click to toggle
           </div>
           <div className="flex flex-wrap gap-2">
             {POPULAR_INTERESTS.map(({ label, emoji }) => {
               const selected = interests.includes(label);
               return (
                 <button key={label} onClick={() => selected ? removeInterest(label) : addInterest(label)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all"
                   style={{
                     background: selected ? '#20BEFF' : 'rgba(100,116,139,0.07)',
                     color: selected ? '#0F1117' : '#64748B',
                     border: selected ? '1px solid #20BEFF' : '1px solid rgba(100,116,139,0.15)',
-                    cursor: 'pointer', transform: selected ? 'scale(1.04)' : 'scale(1)', fontWeight: selected ? 700 : 500
+                    cursor: 'pointer', transform: selected ? 'scale(1.04)' : 'scale(1)',
+                    fontWeight: selected ? 800 : 500
                   }}>
                   {emoji} {selected ? '✓ ' : ''}{label}
                 </button>
@@ -798,7 +825,7 @@ export default function AIRecommendationSection({ interests: propInterests }) {
 
       {/* ─── Completion Banner ───────────────────────────────── */}
       {jobCompletedBanner && !jobProgress && (
-        <div className="p-3.5 rounded-xl border flex items-center justify-between flex-wrap gap-2 animate-fade-in-up"
+        <div className="p-3.5 rounded-xl border flex items-center justify-between flex-wrap gap-2"
           style={{ background: 'rgba(16,185,129,0.06)', borderColor: 'rgba(16,185,129,0.2)' }}>
           <div className="flex items-center gap-2">
             <CheckCircle2 size={16} style={{ color: '#10B981' }} />
@@ -843,7 +870,7 @@ export default function AIRecommendationSection({ interests: propInterests }) {
           {/* Results header + view toggle */}
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div style={{ fontSize: 13, fontWeight: 600, color: '#64748B' }}>
-              <span style={{ color: '#F1F5F9', fontWeight: 800 }}>{recommendations.length}</span> events matched
+              <span className="text-slate-900 dark:text-white font-extrabold">{recommendations.length}</span> events matched
               {lastUpdated && (
                 <span style={{ marginLeft: 8, fontSize: 11 }}>
                   · {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}

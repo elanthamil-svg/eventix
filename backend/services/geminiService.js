@@ -1,42 +1,74 @@
 /**
- * Gemini Service — uses @google/genai v2.x (GoogleGenAI SDK)
- * with smart heuristic fallback when API is unavailable
+ * Gemini Service — calls Gemini REST API directly
+ * Supports API keys obtained from Google AI Studio (AIza...) and other formats
  */
 
-let _ai = null;
-
-const getAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY not configured in .env');
-  if (!_ai) {
-    const { GoogleGenAI } = require('@google/genai');
-    _ai = new GoogleGenAI({ apiKey });
-  }
-  return _ai;
-};
+const https = require('https');
 
 /**
- * Core Gemini text generation call
- * Works with @google/genai v2.x with multi-model retry
+ * Core Gemini text generation call via REST
  */
-const callGemini = async (prompt) => {
-  const ai = getAI();
-  const modelsToTry = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
-  
-  for (const model of modelsToTry) {
-    try {
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-      });
-      if (response && response.text) {
-        return response.text;
+const callGemini = (prompt) => {
+  return new Promise((resolve, reject) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return reject(new Error('GEMINI_API_KEY not configured in .env'));
+
+    const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
+
+    const tryModel = (index) => {
+      if (index >= modelsToTry.length) {
+        return reject(new Error('All Gemini API models unavailable or quota exceeded'));
       }
-    } catch (err) {
-      console.warn(`Gemini model ${model} attempt error: ${err.message}`);
-    }
-  }
-  throw new Error('All Gemini API models unavailable or quota exceeded');
+      const model = modelsToTry[index];
+      const body = JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 1024, temperature: 0.7 }
+      });
+
+      const options = {
+        hostname: 'generativelanguage.googleapis.com',
+        port: 443,
+        path: `/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body)
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.candidates && parsed.candidates[0]?.content?.parts[0]?.text) {
+              resolve(parsed.candidates[0].content.parts[0].text);
+            } else if (parsed.error) {
+              const msg = parsed.error.message || JSON.stringify(parsed.error);
+              console.warn(`Gemini model ${model} error: ${msg}`);
+              if (parsed.error.code === 401 || msg.includes('API_KEY_SERVICE_BLOCKED') || msg.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || msg.includes('authentication')) {
+                return reject(new Error('INVALID_API_KEY'));
+              }
+              tryModel(index + 1);
+            } else {
+              tryModel(index + 1);
+            }
+          } catch (e) {
+            tryModel(index + 1);
+          }
+        });
+      });
+      req.on('error', (e) => {
+        console.warn(`Gemini model ${model} network error: ${e.message}`);
+        tryModel(index + 1);
+      });
+      req.write(body);
+      req.end();
+    };
+
+    tryModel(0);
+  });
 };
 
 /**
@@ -224,6 +256,10 @@ const heuristicRecommend = (userProfile, events) => {
     const cat = (event.category || '').toLowerCase();
     const tags = (event.tags || []).map(t => t.toLowerCase());
     const title = (event.title || '').toLowerCase();
+    const college = (event.collegeName || '').toLowerCase();
+    const allText = `${cat} ${tags.join(' ')} ${title} ${college}`;
+
+    const isSouthFest = /kerala|tamil nadu|karnataka|telangana|andhra|chennai|coimbatore|kozhikode|bengaluru|hyderabad|trivandrum|mangaluru|surathkal|vellore|thanjavur|nitc|psg|ssn|ceg|iiit|bits|nitk|rvce|sastra|cet|amrita|iitm/i.test(allText);
 
     const matchedInterests = interests.filter(i =>
       cat.includes(i) || tags.some(t => t.includes(i)) || title.includes(i)
@@ -231,46 +267,149 @@ const heuristicRecommend = (userProfile, events) => {
     score += matchedInterests.length * 12;
     score += skills.filter(s => tags.some(t => t.includes(s))).length * 6;
 
+    if (isSouthFest) score += 5; // South Indian regional fest affinity bonus
+
     const matchedFormatted = matchedInterests.slice(0, 2).map(m => m.charAt(0).toUpperCase() + m.slice(1));
     const interestStr = matchedFormatted.length > 0
       ? matchedFormatted.join(' and ')
       : (interests.length > 0 ? interests[0] : 'Technology and Engineering');
 
+    const reason = isSouthFest
+      ? `🌴 Recommended South Indian Fest: ${event.collegeName}'s ${event.title} matches your profile in ${interestStr}. Highly suitable for ${userProfile.department || 'Engineering'} students.`
+      : `Recommended because this event matches your interests in ${interestStr}. It offers hands-on exposure for ${userProfile.department || 'Computer Science'} students.`;
+
     return {
       eventId: (event._id || event.id)?.toString(),
-      score: Math.min(score, 98),
-      reason: `Recommended because this event matches your interests in ${interestStr}. It offers hands-on exposure for ${userProfile.department || 'Computer Science'} students.`
+      score: Math.min(98, score),
+      reason
     };
   }).sort((a, b) => b.score - a.score);
 };
 
-const heuristicSafety = ({ distanceKm, eventEndTime, weather, transportAvailable }) => {
-  let score = 92;
+const heuristicSafety = ({ distanceKm, eventEndTime, weather, transportAvailable, companion = 'group', selectedTransport = 'auto' }) => {
+  let score = 95;
   const reasons = [];
 
-  if (distanceKm > 100) { score -= 18; reasons.push('Long distance (>100 km)'); }
-  else if (distanceKm > 50) { score -= 8; reasons.push('Moderate distance (50–100 km)'); }
-  else { reasons.push('Short travel distance (<50 km)'); }
+  if (distanceKm > 100) { score -= 18; reasons.push('Long distance transit (>100 km)'); }
+  else if (distanceKm > 50) { score -= 8; reasons.push('Moderate distance transit (50–100 km)'); }
+  else { reasons.push('Short transit distance (<50 km)'); }
 
   if (eventEndTime?.includes('PM') && parseInt(eventEndTime) >= 8) {
     score -= 12; reasons.push('Late night return journey');
-  } else { reasons.push('Daytime return expected'); }
+  } else { reasons.push('Daytime or early evening return expected'); }
+
+  if (companion === 'solo') {
+    score -= 10; reasons.push('Solo student travel mode');
+  } else {
+    reasons.push('Group companion travel mode (2+ peers)');
+  }
 
   if (weather?.toLowerCase().includes('rain') || weather?.toLowerCase().includes('storm')) {
     score -= 12; reasons.push('Adverse weather conditions');
   } else { reasons.push('Good weather conditions'); }
 
-  if (transportAvailable) { reasons.push('Multiple public transport options'); }
+  if (transportAvailable) { reasons.push(`Transport mode: ${selectedTransport !== 'auto' ? selectedTransport.toUpperCase() : 'Express Transit'}`); }
   else { score -= 12; reasons.push('Limited night transport'); }
 
-  const status = score < 60 ? 'Risky' : score < 80 ? 'Moderate' : 'Safe';
+  const status = score < 60 ? 'High Risk' : score < 80 ? 'Moderate' : 'Safe';
   return {
     score: Math.max(40, Math.min(98, score)),
     status,
     reasons,
-    advice: 'Daytime travel, good weather, and multiple public transport options make this journey safe.'
+    advice: companion === 'solo'
+      ? 'Share live GPS location with campus emergency contacts and stay in well-lit public transit areas.'
+      : 'Daytime travel, group travel, good weather, and public transport make this journey safe.'
   };
 };
 
-module.exports = { recommendEvents, calculateTravelSafetyScore, rankAccommodations };
+/**
+ * Smart local fallback chatbot — answers event questions from structured data
+ * without requiring the Gemini API.
+ */
+const localChatbot = (eventDetails, message) => {
+  const msg = message.toLowerCase();
+  const date = eventDetails.eventDate
+    ? new Date(eventDetails.eventDate).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+    : 'TBA';
+  const fee = eventDetails.entryFee != null
+    ? (eventDetails.entryFee === 0 ? 'Free entry (no registration fee)' : `₹${eventDetails.entryFee}`)
+    : 'Not specified';
+  const prize = eventDetails.prizePool || 'Not announced yet';
+  const tags = (eventDetails.tags || []).join(', ') || 'None listed';
+  const desc = eventDetails.description || 'No description available.';
+  const venue = eventDetails.venue || 'Venue TBA';
+  const college = eventDetails.collegeName || 'Host college TBA';
+  const category = eventDetails.category || 'General';
+  const title = eventDetails.title || 'This event';
+
+  // Keyword-based routing
+  if (/explain|about|what is|overview|tell me|describe|summary/.test(msg)) {
+    return `**${title}** is a **${category}** event hosted by **${college}**.\n\n📍 *Venue:* ${venue}\n📅 *Date:* ${date}\n💰 *Entry:* ${fee}\n🏆 *Prize Pool:* ${prize}\n\n${desc}\n\n🏷️ *Tags:* ${tags}`;
+  }
+  if (/date|when|schedule|time/.test(msg)) {
+    return `📅 **${title}** is scheduled for **${date}** at ${venue}, hosted by ${college}.`;
+  }
+  if (/venue|where|location|place/.test(msg)) {
+    return `📍 The event is held at **${venue}**, organised by **${college}**.`;
+  }
+  if (/fee|cost|price|register|entry|paid|free/.test(msg)) {
+    return `💰 **Entry Fee:** ${fee}\n\nYou can register directly through the Eventix platform by clicking the **Register** button on the event page.`;
+  }
+  if (/prize|cash|award|winner|reward/.test(msg)) {
+    return `🏆 **Prize Pool:** ${prize}\n\nWinners will be announced by the organising committee of **${college}** on the day of the event.`;
+  }
+  if (/category|type|kind|domain|field/.test(msg)) {
+    return `This is a **${category}** event. Related areas include: ${tags}.`;
+  }
+  if (/tag|topic|skill|requirement|tech/.test(msg)) {
+    return `🏷️ **Tags & Topics:** ${tags}\n\nMake sure you have a foundational understanding of the relevant areas before participating.`;
+  }
+  if (/college|host|organis|organiz|who/.test(msg)) {
+    return `🏫 **${title}** is organised by **${college}**. For specific queries, reach out to the event organisers through the contact details on the event page.`;
+  }
+  if (/contact|email|phone|reach|support/.test(msg)) {
+    return `📞 For direct queries, please contact the organising team at **${college}**. You can also message them via the event page on Eventix.`;
+  }
+  if (/team|solo|group|individual|participant/.test(msg)) {
+    return `👥 Team/participation format details are managed by the organisers at **${college}**. Please check the event description or contact the team directly for specifics.`;
+  }
+  if (/hi|hello|hey|hii|howdy/.test(msg)) {
+    return `Hi there! 👋 I'm the Eventix AI assistant for **${title}**. Ask me anything about this event — dates, fees, prizes, venue, and more!`;
+  }
+  // Default
+  return `Great question! Here's a quick summary of **${title}**:\n\n📅 **Date:** ${date}\n📍 **Venue:** ${venue}\n🏫 **Host:** ${college}\n💰 **Fee:** ${fee}\n🏆 **Prize:** ${prize}\n\n${desc}\n\nFeel free to ask me anything more specific!`;
+};
+
+const eventChatbot = async (eventDetails, message, history = []) => {
+  const historyText = history.map(h => `${h.role === 'user' ? 'Student' : 'AI'}: ${h.text}`).join('\n');
+  
+  const prompt = `You are Eventix AI Chatbot — an expert virtual assistant for inter-college events.
+You are currently answering questions specifically about this event:
+
+Event Title: ${eventDetails.title}
+Category: ${eventDetails.category}
+College/Host: ${eventDetails.collegeName}
+Venue: ${eventDetails.venue}
+Date/Time: ${new Date(eventDetails.eventDate).toLocaleDateString()}
+Prize Pool: ${eventDetails.prizePool}
+Description: ${eventDetails.description}
+Tags: ${(eventDetails.tags || []).join(', ')}
+
+Chat History:
+${historyText}
+
+Student: ${message}
+AI:`;
+
+  try {
+    const text = await callGemini(prompt);
+    return text.trim();
+  } catch (err) {
+    console.warn(`⚠️ Event Chatbot error: ${err.message}`);
+    // Silently fall back to local chatbot — no error shown to user
+    return localChatbot(eventDetails, message);
+  }
+};
+
+module.exports = { recommendEvents, calculateTravelSafetyScore, rankAccommodations, eventChatbot };
 

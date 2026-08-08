@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
         languages: ['English', 'Tamil', 'Hindi'],
         linkedin: 'https://linkedin.com/in/aaravsharma',
         github: 'https://github.com/aaravsharma',
-        interests: ['Artificial Intelligence', 'Competitive Coding', 'Web & Web3'],
+        interests: ['Artificial Intelligence', 'Competitive Coding', 'Web Development'],
         skills: ['React', 'Node.js', 'Python', 'ML'],
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
         emergencyContact: {

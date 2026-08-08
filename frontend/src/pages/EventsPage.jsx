@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { Search, Filter, LayoutGrid, List, Sparkles, X, Trophy } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -178,7 +178,7 @@ export default function EventsPage() {
           </button>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
           {events.map((evt) => (
             <EventCard
               key={evt._id || evt.id}
@@ -206,11 +206,16 @@ export default function EventsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6 shrink-0 text-xs">
-                  <div className="font-bold text-emerald-500">{evt.prizePool}</div>
-                  <a href={`/events/${evt._id || evt.id}`} className="kaggle-btn-primary text-xs px-3 py-1.5">
-                    View Fest
-                  </a>
+                <div className="flex items-center gap-4 shrink-0 text-xs">
+                  <div className="font-bold text-emerald-500 hidden sm:block">{evt.prizePool}</div>
+                  <div className="flex items-center gap-2">
+                    <Link to={`/events/${evt._id || evt.id}`} className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                      View Details
+                    </Link>
+                    <Link to={`/events/${evt._id || evt.id}?register=true`} className="kaggle-btn-primary text-xs px-3 py-1.5 font-extrabold">
+                      Register Now
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

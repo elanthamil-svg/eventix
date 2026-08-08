@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import AISafetyScoreCard from '../components/AISafetyScoreCard';
 import AIAccommodationCard from '../components/AIAccommodationCard';
+import EventChatbot from '../components/EventChatbot';
 import Toast from '../components/Toast';
 import api, { MOCK_EVENTS } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -169,7 +170,7 @@ export default function EventDetailsPage() {
       </div>
 
       {/* Kaggle Competition Banner Header */}
-      <div className="kaggle-card p-6 border-kaggle-cyan/30 space-y-4 relative overflow-hidden bg-slate-900 text-white">
+      <div className="kaggle-card p-6 border-kaggle-cyan/30 space-y-4 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="space-y-2">
@@ -177,16 +178,16 @@ export default function EventDetailsPage() {
               <span className="kaggle-badge kaggle-badge-cyan">
                 {event.category}
               </span>
-              <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/30">
+              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/30">
                 Prize Pool: {event.prizePool}
               </span>
-              <span className="text-xs text-slate-400">
-                Hosted by <strong className="text-white">{event.collegeName}</strong>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                Hosted by <strong className="text-slate-900 dark:text-white">{event.collegeName}</strong>
               </span>
             </div>
 
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight">{event.title}</h1>
-            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">{event.description}</p>
+            <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">{event.title}</h1>
+            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">{event.description}</p>
           </div>
 
           {/* Join / Register Action Button */}
@@ -265,24 +266,68 @@ export default function EventDetailsPage() {
           
           {/* Tab 1: Overview */}
           {activeTab === 'overview' && (
-            <div className="kaggle-card p-6 space-y-4">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">Competition Description</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                {event.description}
-              </p>
+            <div className="space-y-6">
+              <div className="kaggle-card p-6 space-y-4">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Competition Description</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                  {event.description}
+                </p>
 
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Venue & Location</h4>
-                <p className="text-xs text-slate-600 dark:text-slate-300">{event.venue}, {event.location?.address}</p>
-                
-                <a
-                  href={event.location?.googleMapUrl || `https://maps.google.com/?q=${encodeURIComponent(event.venue)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-kaggle-cyan hover:underline"
-                >
-                  <Navigation className="w-3.5 h-3.5" /> Open Google Maps Location
-                </a>
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Venue & Location</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{event.venue}, {event.location?.address}</p>
+                  
+                  <a
+                    href={event.location?.googleMapUrl || `https://maps.google.com/?q=${encodeURIComponent(event.venue)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-kaggle-cyan hover:underline"
+                  >
+                    <Navigation className="w-3.5 h-3.5" /> Open Google Maps Location
+                  </a>
+                </div>
+              </div>
+
+              {/* Modules moved below Competition Description */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Action Box */}
+                <div className="kaggle-card p-5 space-y-4">
+                  <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Registration Status</div>
+                  <div className="text-xl font-black text-slate-900 dark:text-white">Registration Open</div>
+
+                  <button
+                    onClick={() => setShowRegModal(true)}
+                    className="w-full kaggle-btn-primary py-3 text-xs font-extrabold shadow-sm"
+                  >
+                    Enter Competition
+                  </button>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsBookmarked(!isBookmarked)}
+                      className={`flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1 ${
+                        isBookmarked ? 'bg-amber-500/10 text-amber-500 border-amber-500/30' : 'border-slate-200 dark:border-slate-700 text-slate-400'
+                      }`}
+                    >
+                      <Bookmark className="w-3.5 h-3.5" /> {isBookmarked ? 'Saved' : 'Bookmark'}
+                    </button>
+                    <button
+                      onClick={handleShare}
+                      className="flex-1 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-400 flex items-center justify-center gap-1"
+                    >
+                      <Share2 className="w-3.5 h-3.5" /> Share
+                    </button>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-200 dark:border-slate-800 text-xs space-y-1">
+                    <div className="font-bold text-slate-900 dark:text-white">Host Contact</div>
+                    <div className="text-slate-400">{event.contactPerson?.name || 'College Student Cell'}</div>
+                    <div className="text-slate-400">{event.contactPerson?.phone || '+91 98765 43210'}</div>
+                  </div>
+                </div>
+
+                {/* AI Travel Safety Quick Card (compact sidebar version) */}
+                <AISafetyScoreCard event={event} initialDistance={travelDistance} compact={true} />
               </div>
             </div>
           )}
@@ -333,46 +378,12 @@ export default function EventDetailsPage() {
         </div>
 
         {/* Right Sidebar Widget */}
-        <div className="space-y-6">
+        <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
           
-          {/* Action Box */}
-          <div className="kaggle-card p-5 space-y-4">
-            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Registration Status</div>
-            <div className="text-xl font-black text-slate-900 dark:text-white">Registration Open</div>
+          {/* Event AI Chatbot */}
+          <EventChatbot event={event} />
 
-            <button
-              onClick={() => setShowRegModal(true)}
-              className="w-full kaggle-btn-primary py-3 text-xs font-extrabold shadow-sm"
-            >
-              Enter Competition
-            </button>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsBookmarked(!isBookmarked)}
-                className={`flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1 ${
-                  isBookmarked ? 'bg-amber-500/10 text-amber-500 border-amber-500/30' : 'border-slate-200 dark:border-slate-700 text-slate-400'
-                }`}
-              >
-                <Bookmark className="w-3.5 h-3.5" /> {isBookmarked ? 'Saved' : 'Bookmark'}
-              </button>
-              <button
-                onClick={handleShare}
-                className="flex-1 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-400 flex items-center justify-center gap-1"
-              >
-                <Share2 className="w-3.5 h-3.5" /> Share
-              </button>
-            </div>
-
-            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 text-xs space-y-1">
-              <div className="font-bold text-slate-900 dark:text-white">Host Contact</div>
-              <div className="text-slate-400">{event.contactPerson?.name || 'College Student Cell'}</div>
-              <div className="text-slate-400">{event.contactPerson?.phone || '+91 98765 43210'}</div>
-            </div>
-          </div>
-
-          {/* AI Travel Safety Quick Card (compact sidebar version) */}
-          <AISafetyScoreCard event={event} initialDistance={travelDistance} compact={true} />
 
         </div>
 
