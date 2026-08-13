@@ -65,7 +65,7 @@ export default function AIMatchPage() {
             style={{ fontSize: 15, lineHeight: 1.7, maxWidth: 560 }}>
             Eventix's most powerful module. Select your interests, year, and department — 
             our AI ranks every competition and fest across India specifically for you, with 
-            detailed match scores and personalized explanations.
+            personalized recommendations and detailed explanations.
           </p>
 
           {/* Feature Pills */}

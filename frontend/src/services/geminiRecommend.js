@@ -56,6 +56,13 @@ export const fetchLiveRecommendations = async (
 
       const filtered = applyPreferenceFilters(enriched, preferences);
       if (filtered.length > 0) {
+        // Sort matched events by NIRF rank ascending (Rank 1, 2, 3... first)
+        filtered.sort((a, b) => {
+          const rankA = a.event?.nirfRank ?? 9999;
+          const rankB = b.event?.nirfRank ?? 9999;
+          if (rankA !== rankB) return rankA - rankB;
+          return (b.score || 0) - (a.score || 0);
+        });
         return filtered.map(item => ({
           ...item,
           executedLocally: false,
@@ -330,11 +337,21 @@ export const localHeuristicRecommend = (
 
   let filtered = results
     .filter(r => r.score >= minScoreThreshold)
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => {
+      const rankA = a.event?.nirfRank ?? 9999;
+      const rankB = b.event?.nirfRank ?? 9999;
+      if (rankA !== rankB) return rankA - rankB;
+      return b.score - a.score;
+    });
 
   // Fine-tuning fallback: If threshold filtering produces 0 results, return top ranked events regardless of minScore threshold
   if (filtered.length === 0 && results.length > 0) {
-    filtered = [...results].sort((a, b) => b.score - a.score).slice(0, 6);
+    filtered = [...results].sort((a, b) => {
+      const rankA = a.event?.nirfRank ?? 9999;
+      const rankB = b.event?.nirfRank ?? 9999;
+      if (rankA !== rankB) return rankA - rankB;
+      return b.score - a.score;
+    }).slice(0, 12);
   }
 
   const endTime = performance.now();

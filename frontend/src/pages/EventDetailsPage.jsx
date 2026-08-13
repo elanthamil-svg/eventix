@@ -16,10 +16,15 @@ import {
   Navigation,
   ChevronLeft,
   Bookmark,
-  Users
+  Users,
+  FileText,
+  Download,
+  ExternalLink,
+  Compass
 } from 'lucide-react';
 import AISafetyScoreCard from '../components/AISafetyScoreCard';
 import AIAccommodationCard from '../components/AIAccommodationCard';
+import BrochureModal from '../components/BrochureModal';
 import EventChatbot from '../components/EventChatbot';
 import Toast from '../components/Toast';
 import api, { MOCK_EVENTS } from '../services/api';
@@ -33,6 +38,7 @@ export default function EventDetailsPage() {
   const [activeTab, setActiveTab] = useState('overview'); // overview, safety, accommodations, venue
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showRegModal, setShowRegModal] = useState(false);
+  const [showBrochureModal, setShowBrochureModal] = useState(false);
   const [regSuccess, setRegSuccess] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [teamSize, setTeamSize] = useState(1);
@@ -54,63 +60,22 @@ export default function EventDetailsPage() {
   }, [id]);
 
   useEffect(() => {
-    if (travelDistance >= 100) {
+    if (event) {
       api.post('/ai/accommodations', {
         eventId: id,
         userBudget: 1500,
-        distanceKm: travelDistance
+        distanceKm: travelDistance || 120,
+        collegeName: event.collegeName,
+        city: event.location?.city,
+        lat: event.location?.lat,
+        lng: event.location?.lng
       })
       .then(res => {
-        if (res.data.success) setAccommodations(res.data.data);
+        if (res.data.success && res.data.data) setAccommodations(res.data.data);
       })
-      .catch(() => {
-        setAccommodations([
-          {
-            id: 'acc_1',
-            name: 'CampusNest Student Living',
-            type: 'Hostel',
-            image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=800',
-            pricePerNight: 850,
-            rating: 4.8,
-            safetyScore: 96,
-            distanceKm: 2.1,
-            address: 'Near IIT Campus Gate, Chennai',
-            matchReason: 'Recommended for budget travelers. 24/7 biometric security and meal plan available.',
-            amenities: ['CCTV Security', 'Free Wi-Fi', 'Biometric Lock', 'Meals Included'],
-            mapUrl: 'https://maps.google.com/?q=CampusNest'
-          },
-          {
-            id: 'acc_2',
-            name: 'Scholar Stays Executive PG',
-            type: 'Student PG',
-            image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&q=80&w=800',
-            pricePerNight: 1200,
-            rating: 4.6,
-            safetyScore: 92,
-            distanceKm: 3.5,
-            address: 'Tech Corridor, Chennai',
-            matchReason: 'Verified student residency with late-night security desk & study hall.',
-            amenities: ['Air Conditioned', 'Power Backup', 'Washing Machine'],
-            mapUrl: 'https://maps.google.com/?q=ScholarStays'
-          },
-          {
-            id: 'acc_3',
-            name: 'Greenwood Boutique Suites',
-            type: 'Hotel',
-            image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800',
-            pricePerNight: 1750,
-            rating: 4.7,
-            safetyScore: 94,
-            distanceKm: 1.8,
-            address: 'Main Avenue Road, Chennai',
-            matchReason: 'Premium stay with complimentary breakfast and shuttle service.',
-            amenities: ['AC Deluxe', 'Breakfast', 'Shuttle Service'],
-            mapUrl: 'https://maps.google.com/?q=GreenwoodSuites'
-          }
-        ]);
-      });
+      .catch(() => {});
     }
-  }, [id, travelDistance]);
+  }, [id, event, travelDistance]);
 
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
@@ -190,13 +155,20 @@ export default function EventDetailsPage() {
             <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">{event.description}</p>
           </div>
 
-          {/* Join / Register Action Button */}
-          <div className="shrink-0 flex flex-col gap-2">
+          {/* Join / Register Action Button & Brochure */}
+          <div className="shrink-0 flex flex-col sm:flex-row md:flex-col gap-2">
             <button
               onClick={() => setShowRegModal(true)}
               className="kaggle-btn-primary px-6 py-3 text-xs font-extrabold shadow-md"
             >
               Enter Competition / Register
+            </button>
+            <button
+              onClick={() => setShowBrochureModal(true)}
+              className="px-5 py-2.5 text-xs font-bold rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center gap-2 transition-all"
+            >
+              <FileText className="w-4 h-4 text-purple-400" />
+              <span>View / Print Official Brochure</span>
             </button>
             <div className="text-[11px] text-slate-400 text-center">
               Deadline: {new Date(event.registrationDeadline).toLocaleDateString()}
@@ -219,14 +191,18 @@ export default function EventDetailsPage() {
             <Clock className="w-4 h-4 text-amber-400" />
             <span>Time: <strong>{event.startTime} - {event.endTime}</strong></span>
           </div>
+          <div className="flex items-center gap-1.5">
+            <FileText className="w-4 h-4 text-purple-400" />
+            <span>Brochure: <strong className="text-purple-300">Available (PDF)</strong></span>
+          </div>
         </div>
       </div>
 
       {/* Kaggle Navigation Tabs Bar */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${
+          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors whitespace-nowrap ${
             activeTab === 'overview'
               ? 'bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan border-b-2 border-kaggle-cyan'
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
@@ -236,19 +212,30 @@ export default function EventDetailsPage() {
         </button>
 
         <button
+          onClick={() => setActiveTab('brochure')}
+          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
+            activeTab === 'brochure'
+              ? 'bg-purple-500/10 text-purple-400 border-b-2 border-purple-500'
+              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5 text-purple-400" /> Event Brochure
+        </button>
+
+        <button
           onClick={() => setActiveTab('safety')}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 ${
+          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
             activeTab === 'safety'
               ? 'bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan border-b-2 border-kaggle-cyan'
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> AI Travel Safety Score
+          <Compass className="w-3.5 h-3.5 text-cyan-400" /> AI Suited Route Agent
         </button>
 
         <button
           onClick={() => setActiveTab('accommodations')}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 ${
+          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
             activeTab === 'accommodations'
               ? 'bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan border-b-2 border-kaggle-cyan'
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
@@ -272,6 +259,25 @@ export default function EventDetailsPage() {
                 <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                   {event.description}
                 </p>
+
+                {/* Official Event Brochure Card */}
+                <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400 shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-slate-900 dark:text-white">Official Event Brochure</h4>
+                      <p className="text-[11px] text-slate-400">Complete schedule, rules, guidelines, and prize distribution specs.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowBrochureModal(true)}
+                    className="px-4 py-2 text-xs font-bold rounded-lg bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-sm"
+                  >
+                    <FileText className="w-3.5 h-3.5" /> View Official Brochure
+                  </button>
+                </div>
 
                 <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Venue & Location</h4>
@@ -332,6 +338,159 @@ export default function EventDetailsPage() {
             </div>
           )}
 
+          {/* Tab: Brochure */}
+          {activeTab === 'brochure' && (
+            <div className="space-y-6">
+              {/* Header bar */}
+              <div className="kaggle-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white">Official Event Brochure</h3>
+                    <p className="text-xs text-slate-400">Published by {event.collegeName} • Full Rules & Schedule</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowBrochureModal(true)}
+                    className="kaggle-btn-primary text-xs px-4 py-2 font-bold flex items-center gap-1.5"
+                  >
+                    <FileText className="w-3.5 h-3.5" /> View / Print Full Brochure
+                  </button>
+                </div>
+              </div>
+
+              {/* Displayed Brochure Sheet */}
+              <div className="bg-slate-900 rounded-2xl border border-purple-500/30 p-6 sm:p-8 space-y-8 relative overflow-hidden shadow-xl">
+                
+                {/* Header */}
+                <div className="border-b border-slate-800 pb-6 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center font-black text-kaggle-cyan text-lg shrink-0">
+                        {event.collegeName ? event.collegeName.substring(0, 2).toUpperCase() : 'CC'}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold tracking-wider uppercase text-purple-400">{event.collegeName}</h4>
+                        <p className="text-[11px] text-slate-400">Department of Student Affairs & Technology Cell</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-emerald-400 font-extrabold text-xs bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/30 self-start sm:self-auto">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Official Verified Brochure</span>
+                    </div>
+                  </div>
+
+                  {/* Main Event Cover Poster */}
+                  <div className="relative rounded-xl overflow-hidden h-56 sm:h-72 border border-slate-800">
+                    <img 
+                      src={event.poster} 
+                      alt={event.title}
+                      className="w-full h-full object-cover" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent flex flex-col justify-end p-6">
+                      <span className="kaggle-badge kaggle-badge-cyan self-start mb-2">
+                        {event.category || 'National Competition'}
+                      </span>
+                      <h1 className="text-xl sm:text-3xl font-black text-white leading-tight">
+                        {event.title}
+                      </h1>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Key Metrics Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                      <Trophy className="w-4 h-4 text-emerald-400" />
+                      <span>Total Prize Pool</span>
+                    </div>
+                    <div className="text-lg font-black text-emerald-400">{event.prizePool}</div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                      <Calendar className="w-4 h-4 text-kaggle-cyan" />
+                      <span>Event Date</span>
+                    </div>
+                    <div className="text-sm font-bold text-white">
+                      {new Date(event.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                      <Clock className="w-4 h-4 text-amber-400" />
+                      <span>Registration Deadline</span>
+                    </div>
+                    <div className="text-sm font-bold text-amber-400">
+                      {new Date(event.registrationDeadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detailed Description */}
+                <div className="space-y-3 border-t border-slate-800 pt-6">
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-purple-400" />
+                    <span>Event Structure & Specifications</span>
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line bg-slate-950/40 p-5 rounded-xl border border-slate-800/80">
+                    {event.description}
+                  </p>
+                </div>
+
+                {/* Rules & Guidelines Section */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>Official Rules & Guidelines</span>
+                  </h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+                    <li className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Open to all undergraduate & postgraduate students nationwide.</span>
+                    </li>
+                    <li className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Teams can have 1 to 4 members with cross-college participation allowed.</span>
+                    </li>
+                    <li className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Mandatory college ID card verification at check-in counter.</span>
+                    </li>
+                    <li className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Certificates awarded to all verified registered team attendees.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-3 border-t border-slate-800 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <span>Printable Verified Pamphlet</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">Generated dynamically with schedule, rules, eligibility and campus contact details.</p>
+                  </div>
+                  <button
+                    onClick={() => setShowBrochureModal(true)}
+                    className="kaggle-btn-primary text-xs px-5 py-2.5 font-bold flex items-center justify-center gap-2 shrink-0"
+                  >
+                    <FileText className="w-4 h-4" /> Open Full Brochure Viewer
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
           {/* Tab 2: AI Safety Score */}
           {activeTab === 'safety' && (
             <AISafetyScoreCard event={event} initialDistance={travelDistance} />
@@ -351,14 +510,14 @@ export default function EventDetailsPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="text-base font-black text-slate-900 dark:text-white">AI Accommodation Assistant</h3>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black" style={{ background: '#8B5CF6', color: '#fff' }}>AI</span>
+                      <h3 className="text-base font-black text-slate-900 dark:text-white">Gemini AI Accommodation Agent</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black" style={{ background: '#8B5CF6', color: '#fff' }}>Gemini AI</span>
                     </div>
-                    <p className="text-xs text-slate-400">Top 3 picks ranked by budget, safety, ratings & proximity · Activated for travel &gt;100 km</p>
+                    <p className="text-xs text-slate-400">Top 5 picks near campus ranked live by Gemini AI Agent & Google Places</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 mt-3 pt-3 relative z-10" style={{ borderTop: '1px solid rgba(139,92,246,0.15)' }}>
-                  {[{ label: 'Budget Match', val: '✓' }, { label: 'Safety Verified', val: '✓' }, { label: 'AI Ranked', val: '3 Picks' }].map(({ label, val }) => (
+                  {[{ label: 'Budget Match', val: '✓' }, { label: 'Safety Verified', val: '✓' }, { label: 'Live Google Places', val: 'Active' }, { label: 'Gemini AI Agent', val: 'Top 5 Picks' }].map(({ label, val }) => (
                     <div key={label} className="text-xs">
                       <span style={{ color: '#64748B' }}>{label}: </span>
                       <strong style={{ color: '#8B5CF6' }}>{val}</strong>
@@ -440,6 +599,10 @@ export default function EventDetailsPage() {
 
           </div>
         </div>
+      )}
+
+      {showBrochureModal && (
+        <BrochureModal event={event} onClose={() => setShowBrochureModal(false)} />
       )}
 
       {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg('')} />}

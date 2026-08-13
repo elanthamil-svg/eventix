@@ -74,6 +74,10 @@ const eventSchema = new mongoose.Schema({
     type: String,
     default: '₹50,000'
   },
+  brochure: {
+    type: String,
+    default: ''
+  },
   gallery: [{
     type: String
   }],
@@ -98,6 +102,14 @@ const eventSchema = new mongoose.Schema({
   viewsCount: {
     type: Number,
     default: 0
+  },
+  nirfRank: {
+    type: Number,
+    default: null  // NIRF 2025 Engineering rank (1-100). null = not ranked
+  },
+  nirfScore: {
+    type: Number,
+    default: null  // NIRF score out of 100
   }
 }, { timestamps: true });
 

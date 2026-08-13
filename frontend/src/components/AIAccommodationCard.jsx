@@ -104,16 +104,16 @@ function BookNowModal({ accommodation, onClose }) {
 
         <div className="flex gap-3">
           <a
-            href={accommodation.mapUrl || `https://maps.google.com/?q=${encodeURIComponent((accommodation.name || '') + ' ' + (accommodation.address || ''))}`}
+            href={accommodation.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((accommodation.name || '') + ' ' + (accommodation.address || ''))}`}
             target="_blank" rel="noopener noreferrer"
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold border"
             style={{ borderColor: 'rgba(32,190,255,0.3)', color: '#20BEFF', background: 'rgba(32,190,255,0.05)' }}>
             <Navigation size={13} /> Maps
           </a>
           <a
-            href={accommodation.bookingUrl || `https://www.google.com/search?q=book+${encodeURIComponent(accommodation.name || '')}`}
+            href={accommodation.bookingUrl || `https://www.google.com/travel/hotels?q=${encodeURIComponent((accommodation.name || '') + ' ' + (accommodation.address || ''))}`}
             target="_blank" rel="noopener noreferrer"
-            className="flex-1 kaggle-btn-primary text-xs py-2.5">
+            className="flex-1 kaggle-btn-primary text-xs py-2.5 flex items-center justify-center gap-1 font-extrabold">
             <CreditCard size={13} /> Book Now
           </a>
         </div>
@@ -139,6 +139,8 @@ export default function AIAccommodationCard({ accommodation, rank }) {
     1: { label: '#FFD700', bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)', glow: '0 0 20px rgba(255,215,0,0.2)' },
     2: { label: '#94A3B8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.25)', glow: 'none' },
     3: { label: '#CD7F32', bg: 'rgba(205,127,50,0.08)', border: 'rgba(205,127,50,0.25)', glow: 'none' },
+    4: { label: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.25)', glow: 'none' },
+    5: { label: '#20BEFF', bg: 'rgba(32,190,255,0.08)', border: 'rgba(32,190,255,0.25)', glow: 'none' },
   };
   const rc = rankColors[rank] || rankColors[3];
   const safetyColor = accommodation.safetyScore >= 85 ? '#10B981' : accommodation.safetyScore >= 70 ? '#F59E0B' : '#EF4444';
@@ -268,19 +270,21 @@ export default function AIAccommodationCard({ accommodation, rank }) {
           {/* Action Buttons */}
           <div className="flex gap-2.5 pt-1">
             <a
-              href={accommodation.mapUrl || `https://maps.google.com/?q=${encodeURIComponent((accommodation.name || '') + ' ' + (accommodation.address || ''))}`}
+              href={accommodation.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((accommodation.name || '') + ' ' + (accommodation.address || ''))}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold border transition-all hover:border-cyan-400/40"
               style={{ borderColor: 'rgba(32,190,255,0.25)', color: '#20BEFF', background: 'rgba(32,190,255,0.05)' }}>
               <ExternalLink size={13} /> Google Maps
             </a>
-            <button
-              onClick={() => setShowBookModal(true)}
-              className="flex-1 kaggle-btn-primary text-xs py-2.5 rounded-xl"
+            <a
+              href={accommodation.bookingUrl || `https://www.google.com/travel/hotels?q=${encodeURIComponent((accommodation.name || '') + ' ' + (accommodation.address || ''))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 kaggle-btn-primary text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 font-black shadow-md transition-all hover:scale-[1.02]"
               style={{ borderRadius: 12 }}>
               <CreditCard size={13} /> Book Now
-            </button>
+            </a>
           </div>
 
         </div>

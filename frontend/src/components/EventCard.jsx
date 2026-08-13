@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Trophy, Bookmark, ShieldCheck, Users, Clock, Sparkles, Eye, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Trophy, Bookmark, ShieldCheck, Users, Clock, Sparkles, Eye, ArrowRight, FileText } from 'lucide-react';
+import BrochureModal from './BrochureModal';
 
 export default function EventCard({ event, onBookmark, isBookmarked = false, matchReason }) {
+  const [showBrochureModal, setShowBrochureModal] = useState(false);
+
   if (!event) return null;
 
   const formatDate = (dateStr) => {
@@ -39,8 +42,13 @@ export default function EventCard({ event, onBookmark, isBookmarked = false, mat
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="kaggle-badge kaggle-badge-cyan text-xs py-1 px-3 font-extrabold">
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {event.nirfRank && (
+              <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 flex items-center gap-1 shadow-sm" title={`NIRF 2025 India Engineering Rank #${event.nirfRank}`}>
+                🏆 NIRF #{event.nirfRank}
+              </span>
+            )}
+            <span className="kaggle-badge kaggle-badge-cyan text-xs py-1 px-2.5 font-extrabold">
               {event.category || 'Event'}
             </span>
 
@@ -121,25 +129,41 @@ export default function EventCard({ event, onBookmark, isBookmarked = false, mat
           </div>
         </div>
 
-        {/* Action Buttons: View Details & Register Now */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/60 grid grid-cols-2 gap-2">
+        {/* Action Buttons: Brochure, Details & Register */}
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowBrochureModal(true);
+            }}
+            className="py-2.5 px-2.5 text-center text-xs font-bold rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 transition-all flex items-center justify-center gap-1.5 shrink-0"
+            title="View Official Event Brochure"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline">Brochure</span>
+          </button>
           <Link
             to={`/events/${event._id || event.id}`}
-            className="py-2.5 px-3 text-center text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 px-2 text-center text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-1"
           >
             <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-            <span>View Details</span>
+            <span>Details</span>
           </Link>
           <Link
             to={`/events/${event._id || event.id}?register=true`}
-            className="py-2.5 px-3 text-center text-xs font-extrabold rounded-xl bg-kaggle-cyan text-slate-950 hover:bg-kaggle-cyan/90 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+            className="flex-1 py-2.5 px-2 text-center text-xs font-extrabold rounded-xl bg-kaggle-cyan text-slate-950 hover:bg-kaggle-cyan/90 transition-all flex items-center justify-center gap-1 shadow-sm"
           >
-            <span>Register Now</span>
+            <span>Register</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
       </div>
+
+      {showBrochureModal && (
+        <BrochureModal event={event} onClose={() => setShowBrochureModal(false)} />
+      )}
 
     </motion.div>
   );

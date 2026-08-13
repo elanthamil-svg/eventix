@@ -73,25 +73,21 @@ function useCountUp(target, duration = 900, delay = 0) {
 
 /* ── Score Arc SVG ─────────────────────────────────────────── */
 function ScoreArc({ score, size = 72, color }) {
-  const animated = useCountUp(score, 900, 100);
   const r = (size / 2) - 6;
   const circ = 2 * Math.PI * r;
-  const offset = circ - (circ * animated) / 100;
   const clr = color || (score >= 90 ? '#10B981' : score >= 75 ? '#20BEFF' : '#F59E0B');
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
         <circle cx={size/2} cy={size/2} r={r} stroke="rgba(100,116,139,0.15)" strokeWidth={6} fill="none" />
         <circle cx={size/2} cy={size/2} r={r} stroke={clr} strokeWidth={6} fill="none"
-          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)', filter: `drop-shadow(0 0 6px ${clr}60)` }}
+          strokeDasharray={circ} strokeDashoffset={0} strokeLinecap="round"
+          style={{ filter: `drop-shadow(0 0 6px ${clr}60)` }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span style={{ fontSize: size < 80 ? 15 : 18, fontWeight: 900, color: clr, lineHeight: 1 }}>
-          {animated}%
-        </span>
-        <span className="text-slate-400 dark:text-slate-500 font-bold" style={{ fontSize: 9, letterSpacing: '0.05em', textTransform: 'uppercase' }}>match</span>
+        <Sparkles className="w-4 h-4 mb-0.5" style={{ color: clr }} />
+        <span className="font-extrabold text-slate-300" style={{ fontSize: 9, letterSpacing: '0.05em', textTransform: 'uppercase' }}>AI Pick</span>
       </div>
     </div>
   );
@@ -105,9 +101,9 @@ function ConfidenceBar({ score }) {
     <div>
       <div className="flex items-center justify-between mb-1">
         <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-          AI Confidence
+          AI Relevance
         </span>
-        <span className="text-xs font-extrabold" style={{ color: clr }}>{confidence}%</span>
+        <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-800" style={{ color: clr }}>Recommended</span>
       </div>
       <div style={{ height: 4, borderRadius: 9999, background: 'rgba(100,116,139,0.15)', overflow: 'hidden' }}>
         <div style={{
@@ -176,6 +172,11 @@ function RecommendationCard({ rec, index }) {
           <ScoreArc score={score} size={72} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+              {event.nirfRank && (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 flex items-center gap-1 shadow-sm" title={`NIRF 2025 India Engineering Rank #${event.nirfRank}`}>
+                  🏆 NIRF #{event.nirfRank}
+                </span>
+              )}
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full"
                 style={{ background: `${scoreColor}15`, color: scoreColor, border: `1px solid ${scoreColor}30` }}>
                 {event.category || 'Tech Event'}
@@ -244,8 +245,8 @@ function RecommendationCard({ rec, index }) {
             <div className="mt-2.5 p-3 rounded-xl space-y-2 text-[11px]"
               style={{ background: 'rgba(15,17,23,0.5)', border: '1px solid rgba(100,116,139,0.18)' }}>
               <div className="font-extrabold uppercase tracking-wider text-[10px] text-slate-400 mb-1 flex items-center justify-between">
-                <span>Rubric Factors</span>
-                <span style={{ color: scoreColor }}>Total: {score}/100</span>
+                <span>Rubric Alignment</span>
+                <span style={{ color: scoreColor }}>Matched</span>
               </div>
               {factors.map(f => {
                 const pct = Math.min(100, Math.round((f.val / f.max) * 100));
@@ -253,7 +254,6 @@ function RecommendationCard({ rec, index }) {
                   <div key={f.label} className="space-y-0.5">
                     <div className="flex justify-between font-semibold text-slate-300">
                       <span>{f.label}</span>
-                      <span style={{ color: f.color }}>{f.val}/{f.max} pts</span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
                       <div className="h-full rounded-full transition-all duration-700"

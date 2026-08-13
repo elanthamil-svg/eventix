@@ -5,7 +5,8 @@ import {
   Users, 
   Eye, 
   Trash2, 
-  DollarSign
+  DollarSign,
+  FileText
 } from 'lucide-react';
 import api, { MOCK_EVENTS } from '../services/api';
 import Toast from '../components/Toast';
@@ -28,6 +29,7 @@ export default function OrganizerDashboardPage() {
     registrationDeadline: '2026-09-15',
     entryFee: 0,
     prizePool: '₹1,00,000',
+    brochure: '',
     contactName: 'Priya Sundaram',
     contactPhone: '+91 98765 43210'
   });
@@ -141,7 +143,18 @@ export default function OrganizerDashboardPage() {
                       Published
                     </span>
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="p-3 text-right flex items-center justify-end gap-2">
+                    {evt.brochure && (
+                      <a
+                        href={evt.brochure}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded text-purple-400 hover:bg-purple-500/10"
+                        title="View / Download Event Brochure"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </a>
+                    )}
                     <button onClick={() => handleDelete(evt._id || evt.id)} className="p-1.5 rounded text-rose-500 hover:bg-rose-500/10">
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -198,6 +211,17 @@ export default function OrganizerDashboardPage() {
                     className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Brochure PDF URL</label>
+                <input 
+                  type="url" 
+                  placeholder="https://example.com/event-brochure.pdf"
+                  value={formData.brochure}
+                  onChange={(e) => setFormData({ ...formData, brochure: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white"
+                />
               </div>
 
               <div>

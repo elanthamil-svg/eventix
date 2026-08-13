@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, Filter, LayoutGrid, List, Sparkles, X, Trophy } from 'lucide-react';
+import { Search, Filter, LayoutGrid, List, Sparkles, X, Trophy, FileText } from 'lucide-react';
 import EventCard from '../components/EventCard';
+import BrochureModal from '../components/BrochureModal';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import api, { MOCK_EVENTS } from '../services/api';
 
@@ -15,10 +16,12 @@ export default function EventsPage() {
   const [category, setCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [feeFilter, setFeeFilter] = useState('all'); // all, free, paid
+  const [sortBy, setSortBy] = useState('nirf'); // nirf, date, prize
   const [viewMode, setViewMode] = useState('grid'); // grid, list
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookmarks, setBookmarks] = useState({});
+  const [selectedBrochureEvent, setSelectedBrochureEvent] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -27,7 +30,9 @@ export default function EventsPage() {
     api.get(url)
       .then((res) => {
         if (res.data.success) {
-          setEvents(res.data.data);
+          let list = res.data.data;
+          list = sortEvents(list, sortBy);
+          setEvents(list);
         }
       })
       .catch(() => {
@@ -52,10 +57,31 @@ export default function EventsPage() {
           filtered = filtered.filter(e => e.entryFee > 0);
         }
 
+        filtered = sortEvents(filtered, sortBy);
         setEvents(filtered);
       })
       .finally(() => setLoading(false));
-  }, [category, searchQuery, feeFilter]);
+  }, [category, searchQuery, feeFilter, sortBy]);
+
+  const sortEvents = (list, sortType) => {
+    const copy = [...list];
+    if (sortType === 'nirf') {
+      return copy.sort((a, b) => {
+        const rA = a.nirfRank ?? 9999;
+        const rB = b.nirfRank ?? 9999;
+        return rA - rB;
+      });
+    } else if (sortType === 'prize') {
+      return copy.sort((a, b) => {
+        const pA = parseInt((a.prizePool || '').replace(/[^\d]/g, '')) || 0;
+        const pB = parseInt((b.prizePool || '').replace(/[^\d]/g, '')) || 0;
+        return pB - pA;
+      });
+    } else if (sortType === 'date') {
+      return copy.sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+    }
+    return copy;
+  };
 
   const handleBookmark = (id) => {
     setBookmarks(prev => ({ ...prev, [id]: !prev[id] }));
@@ -65,6 +91,7 @@ export default function EventsPage() {
     setCategory('All');
     setSearchQuery('');
     setFeeFilter('all');
+    setSortBy('nirf');
     setSearchParams({});
   };
 
@@ -123,6 +150,16 @@ export default function EventsPage() {
 
           <div className="flex items-center gap-2">
             <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 text-xs rounded-xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
+            >
+              <option value="nirf">🏆 NIRF Rank (Top Colleges)</option>
+              <option value="prize">💰 Highest Prize Pool</option>
+              <option value="date">📅 Event Date</option>
+            </select>
+
+            <select
               value={feeFilter}
               onChange={(e) => setFeeFilter(e.target.value)}
               className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 text-xs rounded-xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-medium"
@@ -134,7 +171,7 @@ export default function EventsPage() {
 
             <button
               onClick={clearFilters}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-500 hover:text-rose-500"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-500 hover:text-rose-500 shrink-0"
               title="Clear Filters"
             >
               <X className="w-4 h-4" />
@@ -199,9 +236,16 @@ export default function EventsPage() {
                     {evt.collegeName ? evt.collegeName.substring(0, 2).toUpperCase() : 'CC'}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white hover:text-kaggle-cyan cursor-pointer">
-                      {evt.title}
-                    </h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white hover:text-kaggle-cyan cursor-pointer">
+                        {evt.title}
+                      </h4>
+                      {evt.nirfRank && (
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                          🏆 NIRF #{evt.nirfRank}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-500">{evt.collegeName} • {evt.category}</p>
                   </div>
                 </div>
@@ -209,6 +253,14 @@ export default function EventsPage() {
                 <div className="flex items-center gap-4 shrink-0 text-xs">
                   <div className="font-bold text-emerald-500 hidden sm:block">{evt.prizePool}</div>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedBrochureEvent(evt)}
+                      className="px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold flex items-center gap-1 transition-colors"
+                      title="View Official Brochure"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span className="hidden md:inline">Brochure</span>
+                    </button>
                     <Link to={`/events/${evt._id || evt.id}`} className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                       View Details
                     </Link>
@@ -221,6 +273,13 @@ export default function EventsPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {selectedBrochureEvent && (
+        <BrochureModal
+          event={selectedBrochureEvent}
+          onClose={() => setSelectedBrochureEvent(null)}
+        />
       )}
 
     </div>
