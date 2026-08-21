@@ -4,20 +4,19 @@ import {
   FileText, 
   Download, 
   ExternalLink, 
-  Printer, 
   Calendar, 
-  MapPin, 
   Trophy, 
-  Users, 
   ShieldCheck, 
   Sparkles, 
   CheckCircle2,
   Clock,
   BookOpen
 } from 'lucide-react';
+import { downloadEventBrochurePdf } from '../utils/generateBrochurePdf';
 
 export default function BrochureModal({ event, onClose }) {
   const [viewMode, setViewMode] = useState('doc'); // 'doc' | 'pdf'
+  const [downloading, setDownloading] = useState(false);
 
   if (!event) return null;
 
@@ -25,8 +24,15 @@ export default function BrochureModal({ event, onClose }) {
   const pdfUrl = hasPdfUrl ? event.brochure : null;
   const embedUrl = pdfUrl ? `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true` : null;
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPdf = () => {
+    try {
+      setDownloading(true);
+      downloadEventBrochurePdf(event);
+      setTimeout(() => setDownloading(false), 1200);
+    } catch (err) {
+      console.error('Error generating brochure PDF:', err);
+      setDownloading(false);
+    }
   };
 
   return (
@@ -74,23 +80,14 @@ export default function BrochureModal({ event, onClose }) {
               </button>
             </div>
 
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              className="p-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-colors"
-              title="Download Brochure PDF"
-            >
-              <Download className="w-4 h-4" />
-            </a>
-
             <button
-              onClick={handlePrint}
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors hidden sm:block"
-              title="Print Brochure"
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+              title="Download Brochure as PDF"
             >
-              <Printer className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5" />
+              <span>{downloading ? 'Downloading...' : 'Download PDF'}</span>
             </button>
 
             <button
@@ -128,7 +125,7 @@ export default function BrochureModal({ event, onClose }) {
             </div>
           ) : (
             /* Visual Brochure Document Paper Sheet */
-            <div className="max-w-3xl mx-auto bg-slate-900 rounded-2xl border border-purple-500/30 p-6 sm:p-8 space-y-8 relative overflow-hidden shadow-xl">
+            <div id="brochure-content" className="max-w-3xl mx-auto bg-slate-900 rounded-2xl border border-purple-500/30 p-6 sm:p-8 space-y-8 relative overflow-hidden shadow-xl">
               
               {/* Top Watermark / Badge */}
               <div className="absolute top-0 right-0 translate-x-4 -translate-y-4 w-36 h-36 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
@@ -266,25 +263,14 @@ export default function BrochureModal({ event, onClose }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {pdfUrl ? (
-              <a
-                href={pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 transition-colors shadow-sm"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download PDF</span>
-              </a>
-            ) : (
-              <button
-                onClick={handlePrint}
-                className="px-4 py-2 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 transition-colors shadow-sm"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print / Save PDF</span>
-              </button>
-            )}
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{downloading ? 'Generating & Downloading PDF...' : 'Download PDF'}</span>
+            </button>
             <button
               onClick={onClose}
               className="px-4 py-2 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"

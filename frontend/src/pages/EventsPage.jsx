@@ -1,12 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, Filter, LayoutGrid, List, Sparkles, X, Trophy, FileText } from 'lucide-react';
+import { Search, Filter, LayoutGrid, List, Sparkles, X, Trophy, FileText, Download } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import BrochureModal from '../components/BrochureModal';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import api, { MOCK_EVENTS } from '../services/api';
 
 const CATEGORIES = ['All', 'Hackathon', 'Workshop', 'Symposium', 'Coding', 'AI', 'Robotics', 'Design'];
+
+function sortEvents(list, sortType) {
+  if (!Array.isArray(list)) return [];
+  const copy = [...list];
+  if (sortType === 'nirf') {
+    return copy.sort((a, b) => {
+      const rA = a.nirfRank ?? 9999;
+      const rB = b.nirfRank ?? 9999;
+      return rA - rB;
+    });
+  } else if (sortType === 'prize') {
+    return copy.sort((a, b) => {
+      const pA = parseInt((a.prizePool || '').replace(/[^\d]/g, '')) || 0;
+      const pB = parseInt((b.prizePool || '').replace(/[^\d]/g, '')) || 0;
+      return pB - pA;
+    });
+  } else if (sortType === 'date') {
+    return copy.sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+  }
+  return copy;
+}
 
 export default function EventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -18,70 +39,57 @@ export default function EventsPage() {
   const [feeFilter, setFeeFilter] = useState('all'); // all, free, paid
   const [sortBy, setSortBy] = useState('nirf'); // nirf, date, prize
   const [viewMode, setViewMode] = useState('grid'); // grid, list
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState(() => {
+    // Initial instant load with zero delay
+    return sortEvents(MOCK_EVENTS, 'nirf');
+  });
+  const [loading, setLoading] = useState(false);
   const [bookmarks, setBookmarks] = useState({});
   const [selectedBrochureEvent, setSelectedBrochureEvent] = useState(null);
 
+  // Apply filters instantly locally first, then sync with API
   useEffect(() => {
-    setLoading(true);
-    let url = `/events?category=${category !== 'All' ? category : ''}&search=${searchQuery}&fee=${feeFilter}`;
+    // 1. Instant local filter for 0ms response time
+    let filtered = [...MOCK_EVENTS];
 
+    if (category !== 'All') {
+      filtered = filtered.filter(e => e.category === category || e.tags?.includes(category));
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(e => 
+        e.title?.toLowerCase().includes(q) ||
+        e.description?.toLowerCase().includes(q) ||
+        e.collegeName?.toLowerCase().includes(q) ||
+        e.tags?.some(t => t.toLowerCase().includes(q))
+      );
+    }
+
+    if (feeFilter === 'free') {
+      filtered = filtered.filter(e => e.entryFee === 0);
+    } else if (feeFilter === 'paid') {
+      filtered = filtered.filter(e => e.entryFee > 0);
+    }
+
+    filtered = sortEvents(filtered, sortBy);
+    setEvents(filtered);
+
+    // 2. Background API sync (non-blocking)
+    let url = `/events?category=${category !== 'All' ? category : ''}&search=${searchQuery}&fee=${feeFilter}`;
     api.get(url)
       .then((res) => {
-        if (res.data.success) {
-          let list = res.data.data;
-          list = sortEvents(list, sortBy);
+        if (res.data && res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          let list = sortEvents(res.data.data, sortBy);
           setEvents(list);
         }
       })
       .catch(() => {
-        let filtered = [...MOCK_EVENTS];
-
-        if (category !== 'All') {
-          filtered = filtered.filter(e => e.category === category || e.tags?.includes(category));
-        }
-
-        if (searchQuery) {
-          const q = searchQuery.toLowerCase();
-          filtered = filtered.filter(e => 
-            e.title.toLowerCase().includes(q) ||
-            e.description.toLowerCase().includes(q) ||
-            e.collegeName.toLowerCase().includes(q)
-          );
-        }
-
-        if (feeFilter === 'free') {
-          filtered = filtered.filter(e => e.entryFee === 0);
-        } else if (feeFilter === 'paid') {
-          filtered = filtered.filter(e => e.entryFee > 0);
-        }
-
-        filtered = sortEvents(filtered, sortBy);
-        setEvents(filtered);
-      })
-      .finally(() => setLoading(false));
+        // Silently keep the instant filtered mock data
+      });
   }, [category, searchQuery, feeFilter, sortBy]);
 
-  const sortEvents = (list, sortType) => {
-    const copy = [...list];
-    if (sortType === 'nirf') {
-      return copy.sort((a, b) => {
-        const rA = a.nirfRank ?? 9999;
-        const rB = b.nirfRank ?? 9999;
-        return rA - rB;
-      });
-    } else if (sortType === 'prize') {
-      return copy.sort((a, b) => {
-        const pA = parseInt((a.prizePool || '').replace(/[^\d]/g, '')) || 0;
-        const pB = parseInt((b.prizePool || '').replace(/[^\d]/g, '')) || 0;
-        return pB - pA;
-      });
-    } else if (sortType === 'date') {
-      return copy.sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
-    }
-    return copy;
-  };
+
 
   const handleBookmark = (id) => {
     setBookmarks(prev => ({ ...prev, [id]: !prev[id] }));
@@ -256,9 +264,9 @@ export default function EventsPage() {
                     <button
                       onClick={() => setSelectedBrochureEvent(evt)}
                       className="px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold flex items-center gap-1 transition-colors"
-                      title="View Official Brochure"
+                      title="Download Official Brochure"
                     >
-                      <FileText className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5" />
                       <span className="hidden md:inline">Brochure</span>
                     </button>
                     <Link to={`/events/${evt._id || evt.id}`} className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">

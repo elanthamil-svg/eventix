@@ -537,14 +537,17 @@ export default function AIRecommendationSection({ interests: propInterests }) {
                   style={{ background: '#20BEFF', color: '#0F1117' }}>AI</span>
               </div>
               <p style={{ fontSize: 12, color: '#64748B' }}>
-                Personalized event matches based on your interests, department & year
+                Personalized event matches filtered for high field relevance & ordered by host college NIRF ranking
               </p>
               {/* Quick stats */}
               {executionStats && (
-                <div className="flex items-center gap-4 mt-2 flex-wrap">
+                <div className="flex items-center gap-3 mt-2 flex-wrap">
                   <span className="flex items-center gap-1 text-xs" style={{ color: '#64748B' }}>
                     <Target size={11} style={{ color: '#20BEFF' }} />
                     <strong style={{ color: '#20BEFF' }}>{executionStats.matchedCount}</strong> events matched
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25">
+                    🏆 Ordered by NIRF Rank
                   </span>
                   <span className="flex items-center gap-1 text-xs" style={{ color: '#64748B' }}>
                     <Zap size={11} style={{ color: '#10B981' }} />
@@ -869,10 +872,13 @@ export default function AIRecommendationSection({ interests: propInterests }) {
         <div>
           {/* Results header + view toggle */}
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#64748B' }}>
+            <div className="flex items-center gap-2 flex-wrap" style={{ fontSize: 13, fontWeight: 600, color: '#64748B' }}>
               <span className="text-slate-900 dark:text-white font-extrabold">{recommendations.length}</span> events matched
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center gap-1">
+                🏆 Top NIRF Rank Order
+              </span>
               {lastUpdated && (
-                <span style={{ marginLeft: 8, fontSize: 11 }}>
+                <span style={{ fontSize: 11 }}>
                   · {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}

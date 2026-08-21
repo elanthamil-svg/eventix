@@ -147,6 +147,18 @@ const DEPT_AFFINITY_MAP = {
  *   Department Alignment     → 0-15 pts
  *   Opportunity/Prestige     → 0-5  pts
  */
+/**
+ * Fine-tuned multi-factor local heuristic AI recommendation engine.
+ * Ensures that suggested events are strictly relevant to the selected field(s),
+ * and then ordered by NIRF ranking of the host institution.
+ * 
+ * Scoring breakdown:
+ *   Interest-Category Match  → 0-40 pts
+ *   Skill Applicability      → 0-25 pts
+ *   Year Suitability         → 0-15 pts
+ *   Department Alignment     → 0-15 pts
+ *   Opportunity/Prestige     → 0-5  pts
+ */
 export const localHeuristicRecommend = (
   interests = [],
   department = 'Computer Science',
@@ -154,8 +166,8 @@ export const localHeuristicRecommend = (
   preferences = {}
 ) => {
   const startTime = performance.now();
-  const lowerInterests = (interests || []).map(i => i.toLowerCase().trim());
-  const lowerSkills = (preferences.skills || []).map(s => s.toLowerCase().trim());
+  const lowerInterests = (interests || []).map(i => i.toLowerCase().trim()).filter(Boolean);
+  const lowerSkills = (preferences.skills || []).map(s => s.toLowerCase().trim()).filter(Boolean);
   const minScoreThreshold = Number(preferences.minScore) || 40;
   const deptLower = (department || '').toLowerCase();
   const yearNum = parseInt(year) || 3;
@@ -172,14 +184,14 @@ export const localHeuristicRecommend = (
     (SYNONYM_MAP[item] || []).forEach(syn => expandedTokens.add(syn));
     Object.keys(SYNONYM_MAP).forEach(key => {
       if (key.includes(item) || item.includes(key)) {
-        SYNONYM_MAP[key].forEach(syn => expandedTokens.add(syn));
+        (SYNONYM_MAP[key] || []).forEach(syn => expandedTokens.add(syn));
       }
     });
   });
 
   let candidateEvents = [...MOCK_EVENTS];
 
-  // Hard preference filters
+  // Hard preference filters (category, mode, freeOnly, region)
   candidateEvents = candidateEvents.filter(evt => {
     if (preferences.category && preferences.category !== 'all') {
       if (evt.category?.toLowerCase() !== preferences.category.toLowerCase()) return false;
@@ -199,7 +211,9 @@ export const localHeuristicRecommend = (
     return true;
   });
 
-  const results = candidateEvents.map(evt => {
+  const scoredResults = [];
+
+  for (const evt of candidateEvents) {
     const cat = (evt.category || '').toLowerCase();
     const tags = (evt.tags || []).map(t => t.toLowerCase());
     const title = (evt.title || '').toLowerCase();
@@ -212,41 +226,42 @@ export const localHeuristicRecommend = (
     // ── Factor 1: Interest-Category Match (0-40 pts) ──────────────
     let interestScore = 0;
     const matchedInterestLabels = [];
+
     if (lowerInterests.length === 0) {
-      interestScore = 20; // neutral when no interests set
+      interestScore = 20; // neutral baseline when no specific field is selected
     } else {
       lowerInterests.forEach(interest => {
-        // All synonyms for this interest
         const syns = SYNONYM_MAP[interest] || [interest];
-        // Check category and tags (exact/partial)
         const directCatHit = cat === interest || tags.includes(interest);
         const partialCatHit = cat.includes(interest) || tags.some(t => t.includes(interest));
-        // Check title
-        const titleHit = title.includes(interest);
-        // Check full text (including description) using expanded synonyms
+        const titleHit = title.includes(interest) || syns.some(s => title.includes(s));
         const synHit = syns.some(s => allText.includes(s));
-        // Also check using the expandedTokens set (covers cross-references)
-        const expandedHit = [...expandedTokens].some(token => allText.includes(token));
+        const tokenHit = [...expandedTokens].some(token => allText.includes(token));
 
         if (directCatHit) {
-          interestScore += 22;
-          matchedInterestLabels.push(interest);
+          interestScore += 24;
+          if (!matchedInterestLabels.includes(interest)) matchedInterestLabels.push(interest);
         } else if (partialCatHit) {
-          interestScore += 16;
-          matchedInterestLabels.push(interest);
+          interestScore += 18;
+          if (!matchedInterestLabels.includes(interest)) matchedInterestLabels.push(interest);
         } else if (titleHit) {
-          interestScore += 12;
-          matchedInterestLabels.push(interest);
-        } else if (synHit) {
-          // Synonym found in description/tags — strong signal
           interestScore += 14;
           if (!matchedInterestLabels.includes(interest)) matchedInterestLabels.push(interest);
-        } else if (expandedHit) {
-          // Weak expanded match
+        } else if (synHit) {
+          interestScore += 12;
+          if (!matchedInterestLabels.includes(interest)) matchedInterestLabels.push(interest);
+        } else if (tokenHit) {
           interestScore += 6;
         }
       });
     }
+
+    // 🎯 STRICT FIELD RELEVANCE:
+    // If the student specified particular field(s), ONLY keep events that have genuine relevance
+    if (lowerInterests.length > 0 && matchedInterestLabels.length === 0 && interestScore < 10) {
+      continue; // Skip irrelevant events
+    }
+
     interestScore = Math.min(40, interestScore);
 
     // ── Factor 2: Skill Applicability (0-25 pts) ──────────────────
@@ -254,7 +269,7 @@ export const localHeuristicRecommend = (
     if (lowerSkills.length > 0) {
       const skillHits = lowerSkills.filter(s => allText.includes(s)).length;
       skillScore = Math.min(25, skillHits * 9);
-      if (skillScore === 0) skillScore = 3; // baseline
+      if (skillScore === 0) skillScore = 3;
     }
 
     // ── Factor 3: Year Suitability (0-15 pts) ─────────────────────
@@ -272,7 +287,7 @@ export const localHeuristicRecommend = (
     }
 
     // ── Factor 4: Department Alignment (0-15 pts) ─────────────────
-    let deptScore = 3; // base for all events (networking value)
+    let deptScore = 3;
     const hasPrimaryAffinity = deptAffinityList.some(affin =>
       cat.includes(affin) || tags.some(t => t.includes(affin)) || allText.includes(affin)
     );
@@ -286,38 +301,37 @@ export const localHeuristicRecommend = (
       deptScore = 10;
     }
 
-    // ── Factor 5: Opportunity & Regional Prestige (0-5 pts) ───────
+    // ── Factor 5: Opportunity & Prestige (0-5 pts) ────────────────
     const prizeStr = (evt.prizePool || '').replace(/[₹, ]/g, '');
     const prizeNum = parseInt(prizeStr) || 0;
     let opportunityScore = 2;
     if (prizeNum >= 500000) opportunityScore = 5;
     else if (prizeNum >= 200000) opportunityScore = 4;
     else if (prizeNum >= 100000) opportunityScore = 3;
-    
-    // Regional South India bonus
     if (isSouthFest) opportunityScore = Math.min(5, opportunityScore + 1);
 
-    // ── Final score ───────────────────────────────────────────────
+    // ── Total Score ───────────────────────────────────────────────
     let score = interestScore + skillScore + yearScore + deptScore + opportunityScore;
-    if (lowerInterests.length === 0) score = Math.max(60, score); // show all events when no preference
+    if (lowerInterests.length === 0) score = Math.max(60, score);
     score = Math.min(98, Math.max(35, Math.round(score)));
 
-    // ── Rich reason generation ────────────────────────────────────
+    // ── Personalized Reason ───────────────────────────────────────
     const fmtInterests = matchedInterestLabels.slice(0, 2).map(i => i.charAt(0).toUpperCase() + i.slice(1));
+    const nirfBadge = evt.nirfRank ? ` (NIRF #${evt.nirfRank})` : '';
     let reason;
     if (isSouthFest && matchedInterestLabels.length >= 1) {
-      reason = `🌴 Top South Indian Fest: ${evt.collegeName}'s ${evt.title} directly matches your interest in ${fmtInterests[0] || 'technology'}. Highly recommended for ${department} students across South Indian institutions.`;
+      reason = `🌴 Top South Indian Fest: ${evt.collegeName}${nirfBadge}'s ${evt.title} directly matches your focus in ${fmtInterests[0] || 'your chosen field'}. Highly ranked institution with excellent peer competitive exposure.`;
     } else if (matchedInterestLabels.length >= 2) {
-      reason = `🤖 Highly Recommended: This event directly aligns with your interests in ${fmtInterests.join(' and ')}. As a ${year} ${department} student, this competition offers exceptional hands-on exposure and strong career portfolio value.`;
+      reason = `🤖 Highly Recommended Match: Directly aligns with your field interests in ${fmtInterests.join(' & ')}. Hosted by ${evt.collegeName}${nirfBadge}, offering premier technical prestige and career portfolio value.`;
     } else if (matchedInterestLabels.length === 1) {
-      reason = `🤖 Strong Match: ${evt.collegeName}'s ${evt.category} fest matches your interest in ${fmtInterests[0]}. Attending will sharpen relevant skills and connect you with top peers.`;
+      reason = `🎯 Field Relevance Match: ${evt.collegeName}${nirfBadge}'s ${evt.category} competition matches your target field of ${fmtInterests[0]}. Top-tier learning and national visibility.`;
     } else if (deptScore >= 10) {
-      reason = `🤖 Department Fit: This ${evt.category} event at ${evt.collegeName} is well-suited for ${department} students, offering strong domain networking and skill-building opportunities.`;
+      reason = `🏛️ Department Fit: This ${evt.category} event at ${evt.collegeName}${nirfBadge} offers strong domain networking and hands-on exposure for ${department} students.`;
     } else {
-      reason = `🤖 Explore & Discover: This ${evt.category} event at ${evt.collegeName} provides valuable cross-disciplinary exposure. Consider attending to expand your inter-college network.`;
+      reason = `🌟 Explore & Discover: ${evt.collegeName}${nirfBadge}'s ${evt.category} event provides valuable inter-college competition experience.`;
     }
 
-    return {
+    scoredResults.push({
       eventId: evt._id || evt.id,
       score,
       reason,
@@ -332,10 +346,12 @@ export const localHeuristicRecommend = (
         opportunity: opportunityScore,
       },
       event: evt
-    };
-  });
+    });
+  }
 
-  let filtered = results
+  // 🏆 SORTING: Strictly order relevant events by NIRF ranking ascending (Rank #1, #2, #3, ...)
+  // Ties broken by AI match relevance score descending
+  let filtered = scoredResults
     .filter(r => r.score >= minScoreThreshold)
     .sort((a, b) => {
       const rankA = a.event?.nirfRank ?? 9999;
@@ -344,14 +360,14 @@ export const localHeuristicRecommend = (
       return b.score - a.score;
     });
 
-  // Fine-tuning fallback: If threshold filtering produces 0 results, return top ranked events regardless of minScore threshold
-  if (filtered.length === 0 && results.length > 0) {
-    filtered = [...results].sort((a, b) => {
+  // Fallback: If score threshold was too high, keep all matched field events ordered by NIRF rank
+  if (filtered.length === 0 && scoredResults.length > 0) {
+    filtered = [...scoredResults].sort((a, b) => {
       const rankA = a.event?.nirfRank ?? 9999;
       const rankB = b.event?.nirfRank ?? 9999;
       if (rankA !== rankB) return rankA - rankB;
       return b.score - a.score;
-    }).slice(0, 12);
+    });
   }
 
   const endTime = performance.now();

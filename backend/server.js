@@ -58,8 +58,8 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/campusconnect';
 
-// Connect DB & Start Server
-mongoose.connect(MONGODB_URI)
+// Connect DB & Start Server with fast timeout for resilient fallback
+mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 2000 })
   .then(() => {
     console.log('Successfully connected to MongoDB Atlas / Local Database.');
     app.listen(PORT, () => console.log(`CampusConnect Backend running on port ${PORT}`));

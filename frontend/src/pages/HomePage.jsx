@@ -145,10 +145,10 @@ export default function HomePage() {
       </div>
 
       {/* ─── Main Content ──────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8">
 
         {/* Left: Events List */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6">
           {/* Tabs */}
           <div className="flex items-center gap-1 border-b border-slate-100 dark:border-slate-800 pb-3">
             {[
@@ -187,57 +187,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Right Sidebar */}
-        <div className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-          {/* Safety highlight */}
-          <div className="kaggle-card p-5 space-y-3"
-            style={{ borderColor: 'rgba(16,185,129,0.2)', background: 'linear-gradient(135deg, rgba(16,185,129,0.03) 0%, transparent 60%)' }}>
-            <div className="flex items-center gap-2" style={{ color: '#10B981', fontWeight: 700, fontSize: 13 }}>
-              <ShieldCheck size={16} />
-              AI Travel Safety Engine
-            </div>
-            <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.7 }}>
-              When an event distance exceeds 100km, Eventix automatically computes live travel safety scores based on transit, weather, and verified student hostels.
-            </p>
-            <Link to="/events" style={{ fontSize: 12, fontWeight: 700, color: '#10B981', textDecoration: 'none', display: 'block', paddingTop: 4 }}>
-              Explore Safe Events →
-            </Link>
-          </div>
-
-          {/* Quick links */}
-          <div className="kaggle-card p-5 space-y-3">
-            <h4 style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Quick Actions
-            </h4>
-            <div className="space-y-2">
-              {[
-                { label: 'My Registrations', to: '/dashboard', icon: TrendingUp },
-                { label: 'Profile & Settings', to: '/dashboard', icon: Zap },
-                { label: 'All Events', to: '/events', icon: Search },
-              ].map(link => {
-                const Icon = link.icon;
-                return (
-                  <Link key={link.label} to={link.to}
-                    className="flex items-center justify-between p-3 rounded-xl transition-all hover:shadow-sm group"
-                    style={{
-                      textDecoration: 'none',
-                      background: 'rgba(100,116,139,0.04)',
-                      border: '1px solid rgba(100,116,139,0.08)',
-                      color: '#64748B',
-                      fontSize: 13,
-                      fontWeight: 600
-                    }}>
-                    <div className="flex items-center gap-2">
-                      <Icon size={14} />
-                      {link.label}
-                    </div>
-                    <span className="group-hover:translate-x-0.5 transition-transform text-xs">→</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
       </div>
 
     </div>

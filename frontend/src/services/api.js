@@ -4,6 +4,7 @@ const API_BASE = '/api';
 
 const api = axios.create({
   baseURL: API_BASE,
+  timeout: 20000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -27,6 +28,7 @@ export const MOCK_EVENTS = [
     tags: ['Cultural', 'Dance', 'Music', 'Drama', 'Fine Arts', 'Literary'],
     poster: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'Amrita Vishwa Vidyapeetham',
+    nirfRank: 19,
     venue: 'Amritapuri Campus Amphitheatre & Lawns',
     location: {
       address: 'Ettimadai, Coimbatore, Tamil Nadu 641112',
@@ -62,6 +64,7 @@ export const MOCK_EVENTS = [
     tags: ['Entrepreneurship', 'Startup', 'Business', 'Pitch', 'Venture Capital', 'Innovation'],
     poster: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIM Ahmedabad',
+    nirfRank: 1,
     venue: 'Louis Kahn Plaza & Seminar Halls',
     location: {
       address: 'Vastrapur, Ahmedabad, Gujarat 380015',
@@ -95,6 +98,7 @@ export const MOCK_EVENTS = [
     tags: ['Space Technology', 'Aerospace', 'Python', 'Robotics', 'Data Science', 'AI'],
     poster: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIST Trivandrum',
+    nirfRank: 48,
     venue: 'IIST Campus, Space Tech Lab',
     location: {
       address: 'Valiamala, Thiruvananthapuram, Kerala 695547',
@@ -128,6 +132,7 @@ export const MOCK_EVENTS = [
     tags: ['AR/VR', 'Game Development', 'Unity', 'XR', 'UI/UX Design', '3D Design'],
     poster: 'https://images.unsplash.com/photo-1617802690658-1173a812650d?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'Manipal Institute of Technology',
+    nirfRank: 61,
     venue: 'XR Innovation Hub, Block 5',
     location: {
       address: 'Manipal, Udupi, Karnataka 576104',
@@ -161,6 +166,7 @@ export const MOCK_EVENTS = [
     tags: ['Finance & FinTech', 'Blockchain & Web3', 'Machine Learning', 'Python', 'Data Science', 'AI'],
     poster: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIM Bangalore',
+    nirfRank: 2,
     venue: 'NSR Road Campus, Innovation Center',
     location: {
       address: 'Bannerghatta Road, Bengaluru 560076',
@@ -194,6 +200,7 @@ export const MOCK_EVENTS = [
     tags: ['Photography & Film', 'Creative Arts', 'Cultural', 'Design'],
     poster: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'Symbiosis Institute of Design',
+    nirfRank: 15,
     venue: 'Symbiosis Knowledge Village, Pune',
     location: {
       address: 'Lavale, Pune, Maharashtra 412115',
@@ -227,6 +234,7 @@ export const MOCK_EVENTS = [
     tags: ['Environment & Sustainability', 'Data Science', 'IoT & Embedded', 'Python', 'AI', 'Machine Learning'],
     poster: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIT Kharagpur',
+    nirfRank: 5,
     venue: 'Gymkhana Ground & Tech Pavilion',
     location: {
       address: 'IIT Campus, Kharagpur, West Bengal 721302',
@@ -260,6 +268,7 @@ export const MOCK_EVENTS = [
     tags: ['Social Innovation', 'AI', 'Machine Learning', 'Python', 'Web Development', 'IoT & Embedded'],
     poster: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'Tata Institute of Social Sciences',
+    nirfRank: 60,
     venue: 'TISS Mumbai Main Campus',
     location: {
       address: 'Sion-Trombay Road, Deonar, Mumbai 400088',
@@ -293,6 +302,7 @@ export const MOCK_EVENTS = [
     tags: ['Sports Technology', 'IoT & Embedded', 'Machine Learning', 'Data Science', 'Python', 'Hardware'],
     poster: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'JSS Academy of Technical Education',
+    nirfRank: 150,
     venue: 'Sports Science Center & Indoor Stadium',
     location: {
       address: 'Uttarahalli Road, Bengaluru, Karnataka 560060',
@@ -326,6 +336,7 @@ export const MOCK_EVENTS = [
     tags: ['Music & Performing Arts', 'Cultural', 'Creative Arts'],
     poster: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'KM Music Conservatory',
+    nirfRank: 80,
     venue: 'AR Rahman\'s Music Hall, Chennai',
     location: {
       address: 'Old Mahabalipuram Road, Chennai, Tamil Nadu 600097',
@@ -359,6 +370,7 @@ export const MOCK_EVENTS = [
     tags: ['Blockchain & Web3', 'Web Development', 'Coding', 'Finance & FinTech', 'Hackathon'],
     poster: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'NMIMS Mumbai',
+    nirfRank: 21,
     venue: 'Vile Parle West Campus, Innovation Hub',
     location: {
       address: 'Vile Parle West, Mumbai, Maharashtra 400056',
@@ -392,6 +404,7 @@ export const MOCK_EVENTS = [
     tags: ['Biomedical & Health Tech', 'AI', 'Machine Learning', 'Data Science', 'IoT & Embedded', 'Python'],
     poster: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'Christian Medical College',
+    nirfRank: 3,
     venue: 'CMC Hospital Simulation Center',
     location: {
       address: 'Ida Scudder Road, Vellore, Tamil Nadu 632004',
@@ -422,9 +435,10 @@ export const MOCK_EVENTS = [
     title: 'HackNova 2026: 36-Hour AI & Web3 Hackathon',
     description: 'Join 500+ top student coders across India for a high-stakes AI and Web3 hackathon with live mentoring and venture capital pitch sessions.',
     category: 'Hackathon',
-    tags: ['AI', 'Coding', 'Hackathon', 'Web3', 'Python'],
+    tags: ['AI', 'Coding', 'Hackathon', 'Web3', 'Python', 'Machine Learning'],
     poster: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIT Madras',
+    nirfRank: 1,
     venue: 'CLT Auditorium & Computing Hub',
     location: {
       address: 'IIT Campus, Chennai, Tamil Nadu 600036',
@@ -458,9 +472,10 @@ export const MOCK_EVENTS = [
     title: 'RoboQuest 2.0: Drone & Combat Championship',
     description: 'Compete in obstacle navigation, autonomous line follower, and arena combat robotics challenges. Test your hardware and mechatronic design skills.',
     category: 'Robotics',
-    tags: ['Robotics', 'Hardware', 'IoT', 'Autonomous'],
+    tags: ['Robotics', 'Robotics & Drones', 'Hardware', 'IoT', 'Autonomous', 'Drone'],
     poster: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'NIT Trichy',
+    nirfRank: 9,
     venue: 'Robotics Center, Mechanical Complex',
     location: {
       address: 'Tanjore Main Road, Tiruchirappalli, Tamil Nadu 620015',
@@ -493,9 +508,10 @@ export const MOCK_EVENTS = [
     title: 'DesignX National UI/UX & Product Design Summit',
     description: 'Immerse in interactive Figma design sprints, design systems workshops, and feedback sessions with top Product Designers from leading tech companies.',
     category: 'Design',
-    tags: ['Design', 'UI/UX', 'Figma', 'Product Design'],
+    tags: ['Design', 'UI/UX Design', 'UI/UX', 'Figma', 'Product Design', 'User Research'],
     poster: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'NIFT Bangalore',
+    nirfRank: 2,
     venue: 'Design Innovation Lab',
     location: {
       address: 'HSR Layout, Bengaluru 560102',
@@ -528,9 +544,10 @@ export const MOCK_EVENTS = [
     title: 'CodeSprint 2026: Speed Algorithmic Contest',
     description: 'Fast-paced ICPC style competitive programming clash. Solve 8 complex algorithmic problems under pressure and rank on the national leaderboard.',
     category: 'Coding',
-    tags: ['Coding', 'Algorithms', 'C++', 'Data Structures'],
+    tags: ['Coding', 'Competitive Coding', 'Algorithms', 'C++', 'Data Structures'],
     poster: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'BITS Pilani',
+    nirfRank: 20,
     venue: 'IPC Lab & Online Arena',
     location: {
       address: 'Vidya Vihar Campus, Pilani, Rajasthan 333031',
@@ -564,6 +581,7 @@ export const MOCK_EVENTS = [
     tags: ['Cyber Security', 'CTF', 'Hacking', 'Forensics', 'Networking', 'Python'],
     poster: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'VIT Vellore',
+    nirfRank: 11,
     venue: 'Cyber Lab & Anna Auditorium',
     location: {
       address: 'Katpadi-Tiruvalam Road, Vellore, Tamil Nadu 632014',
@@ -599,6 +617,7 @@ export const MOCK_EVENTS = [
     tags: ['Cloud Computing', 'AWS', 'GCP', 'DevOps', 'Serverless', 'Docker'],
     poster: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'SRMIST Chennai',
+    nirfRank: 28,
     venue: 'Tech Park Auditorium & Innovation Tower',
     location: {
       address: 'Kattankulathur, Chengalpattu, Tamil Nadu 603203',
@@ -629,9 +648,10 @@ export const MOCK_EVENTS = [
     title: 'DataCon 2026: Big Data & ML Research Symposium',
     description: 'Present your machine learning research papers, explore big data analytics pipelines, and connect with AI research labs across Asia.',
     category: 'Data Science',
-    tags: ['Data Science', 'Machine Learning', 'Deep Learning', 'Python', 'Big Data'],
+    tags: ['Data Science', 'Machine Learning', 'Deep Learning', 'Python', 'Big Data', 'Artificial Intelligence'],
     poster: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IISc Bangalore',
+    nirfRank: 1,
     venue: 'JN Tata Auditorium',
     location: {
       address: 'CV Raman Road, Bengaluru, Karnataka 560012',
@@ -665,6 +685,7 @@ export const MOCK_EVENTS = [
     tags: ['Game Development', 'Unity', 'Unreal', 'C++', 'UI/UX Design', '3D Design'],
     poster: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIIT Hyderabad',
+    nirfRank: 55,
     venue: 'Gaming Studio & Kohli Center',
     location: {
       address: 'Gachibowli, Hyderabad, Telangana 500032',
@@ -695,9 +716,10 @@ export const MOCK_EVENTS = [
     title: 'IoT-X 2026: Smart Hardware & Embedded Expo',
     description: 'Design smart city IoT nodes, wearable tech, micro-drone controllers, and edge AI hardware prototypes.',
     category: 'IoT & Embedded',
-    tags: ['IoT', 'Hardware', 'Robotics', 'Arduino', 'ROS', 'C++'],
+    tags: ['IoT & Embedded', 'Hardware', 'Robotics', 'Arduino', 'ROS', 'C++'],
     poster: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIT Bombay',
+    nirfRank: 3,
     venue: 'Victor Menezes Convention Centre',
     location: {
       address: 'Powai, Mumbai, Maharashtra 400076',
@@ -731,6 +753,7 @@ export const MOCK_EVENTS = [
     tags: ['Artificial Intelligence', 'Machine Learning', 'Python', 'Biomedical', 'Data Science'],
     poster: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIT Delhi & AIIMS',
+    nirfRank: 2,
     venue: 'Bharti School of Telecom & AIIMS Auditorium',
     location: {
       address: 'Hauz Khas, New Delhi 110016',
@@ -764,6 +787,7 @@ export const MOCK_EVENTS = [
     tags: ['Hackathon', 'AI', 'Robotics', 'Cloud Computing', 'Coding', 'South India', 'Kerala'],
     poster: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'National Institute of Technology Calicut (NITC)',
+    nirfRank: 23,
     venue: 'NIT Calicut OAT & Main Campus Complex',
     location: {
       address: 'NIT Campus P.O., Kozhikode, Kerala 673601',
@@ -797,6 +821,7 @@ export const MOCK_EVENTS = [
     tags: ['Coding', 'Algorithms', 'AI', 'UNESCO', 'Anna University', 'South India', 'Tamil Nadu'],
     poster: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'College of Engineering Guindy, Anna University',
+    nirfRank: 13,
     venue: 'Vivekananda Auditorium & CEG Campus, Guindy',
     location: {
       address: '12, Sardar Patel Rd, Guindy, Chennai, Tamil Nadu 600025',
@@ -830,6 +855,7 @@ export const MOCK_EVENTS = [
     tags: ['IoT & Embedded', 'Hardware', 'Robotics', 'EV Tech', 'PSG Tech', 'South India', 'Coimbatore'],
     poster: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'PSG College of Technology',
+    nirfRank: 63,
     venue: 'PSG Tech Quadrangle & Assembly Hall',
     location: {
       address: 'Avinashi Rd, Peelamedu, Coimbatore, Tamil Nadu 641004',
@@ -863,6 +889,7 @@ export const MOCK_EVENTS = [
     tags: ['Web Development', 'AI', 'Cyber Security', 'SSN', 'South India', 'Chennai'],
     poster: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'SSN College of Engineering',
+    nirfRank: 45,
     venue: 'SSN Auditorium & CSE Block, Kalavakkam',
     location: {
       address: 'Old Mahabalipuram Rd, Kalavakkam, Tamil Nadu 603110',
@@ -896,6 +923,7 @@ export const MOCK_EVENTS = [
     tags: ['AI', 'Coding', 'Machine Learning', 'Game Development', 'IIIT Hyderabad', 'South India', 'Telangana'],
     poster: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'International Institute of Information Technology Hyderabad (IIITH)',
+    nirfRank: 55,
     venue: 'Felicity Ground & Nilgiri Block, Gachibowli',
     location: {
       address: 'Prof. CR Rao Rd, Gachibowli, Hyderabad, Telangana 500032',
@@ -926,9 +954,10 @@ export const MOCK_EVENTS = [
     title: 'Atmos 2026: BITS Pilani Hyderabad Techno-Management Fest',
     description: 'High-octane Drone Racing League, Quadcopter Autonomous Challenges, Algorithmic Trading Arena, and AI Prompt Engineering Sprints.',
     category: 'Robotics',
-    tags: ['Robotics', 'Drones', 'Finance & FinTech', 'AI', 'BITS Pilani', 'South India', 'Hyderabad'],
+    tags: ['Robotics', 'Robotics & Drones', 'Drones', 'Finance & FinTech', 'AI', 'BITS Pilani', 'South India', 'Hyderabad'],
     poster: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'BITS Pilani Hyderabad Campus',
+    nirfRank: 58,
     venue: 'BITS Auditorium & Tech Lawns, Jawaharnagar',
     location: {
       address: 'Jawaharnagar, Kapra Mandal, Hyderabad, Telangana 500078',
@@ -962,6 +991,7 @@ export const MOCK_EVENTS = [
     tags: ['Cultural', 'Music & Performing Arts', 'Beachside Fest', 'NITK Surathkal', 'South India', 'Karnataka'],
     poster: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'National Institute of Technology Karnataka (NITK Surathkal)',
+    nirfRank: 12,
     venue: 'NITK Beach Pavilion & Open Air Theatre',
     location: {
       address: 'NH 66, Srinivasnagar, Surathkal, Mangaluru, Karnataka 575025',
@@ -995,6 +1025,7 @@ export const MOCK_EVENTS = [
     tags: ['Hackathon', 'IoT & Embedded', 'CleanTech', 'RVCE', 'South India', 'Bengaluru'],
     poster: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'RV College of Engineering (RVCE)',
+    nirfRank: 89,
     venue: 'RVCE Main Auditorium & Tech Park, Mysore Road',
     location: {
       address: 'RV Vidyaniketan Post, Mysore Rd, Bengaluru, Karnataka 560059',
@@ -1025,9 +1056,10 @@ export const MOCK_EVENTS = [
     title: 'Kuruksastra 2026: National Cultural & Design Festival',
     description: 'SASTRA University\'s grand cultural spectacle bringing together classical music, dance, short film, digital art, and UI/UX design challenges.',
     category: 'Cultural',
-    tags: ['Cultural', 'Design', 'UI/UX', 'Music & Performing Arts', 'SASTRA', 'South India', 'Thanjavur'],
+    tags: ['Cultural', 'Design', 'UI/UX Design', 'Music & Performing Arts', 'SASTRA', 'South India', 'Thanjavur'],
     poster: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'SASTRA Deemed University',
+    nirfRank: 34,
     venue: 'SASTRA Campus Auditorium, Thanjavur',
     location: {
       address: 'Tirumalaisamudram, Thanjavur, Tamil Nadu 613401',
@@ -1061,6 +1093,7 @@ export const MOCK_EVENTS = [
     tags: ['Cultural', 'Photography & Film', 'Coding', 'CET Trivandrum', 'South India', 'Kerala'],
     poster: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'College of Engineering Trivandrum (CET)',
+    nirfRank: 95,
     venue: 'CET Amphitheatre & PG Block, Kulathoor',
     location: {
       address: 'Engineering College P.O., Thiruvananthapuram, Kerala 695016',
@@ -1087,5 +1120,197 @@ export const MOCK_EVENTS = [
     viewsCount: 2280
   }
 ];
+
+export const getMockAccommodations = (collegeName = '', city = '') => {
+  const c = (collegeName + ' ' + city).toLowerCase();
+  if (c.includes('amrita') || c.includes('coimbatore')) {
+    return [
+      {
+        id: 'acc_coimb_1',
+        name: 'Radisson Blu Hotel Coimbatore',
+        type: 'Luxury Hotel',
+        rating: 4.8,
+        userRatingsTotal: 3420,
+        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800',
+        pricePerNight: 2800,
+        safetyScore: 98,
+        distanceKm: 4.2,
+        address: 'Avinashi Road, Peelamedu, Coimbatore',
+        amenities: ['24/7 Security', 'Free Wi-Fi', 'Swimming Pool', 'Buffet Breakfast'],
+        contactPhone: '+91 422 222 6000',
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Radisson+Blu+Hotel+Coimbatore',
+        bookingUrl: 'https://www.radissonhotels.com/en-us/hotels/radisson-blu-coimbatore',
+        aiRank: 1,
+        matchReason: 'Top rated safety and premier amenities located 4.2 km from Amrita campus.'
+      },
+      {
+        id: 'acc_coimb_5',
+        name: 'Zostel Coonoor / Coimbatore Hub',
+        type: 'Student Hostel',
+        rating: 4.9,
+        userRatingsTotal: 980,
+        image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&q=80&w=800',
+        pricePerNight: 850,
+        safetyScore: 95,
+        distanceKm: 1.8,
+        address: 'Near Ettimadai Campus, Coimbatore Junction',
+        amenities: ['Biometric Lock', 'Free Wi-Fi', 'Common Lounge', 'Student Discounts'],
+        contactPhone: '+91 422 298 7654',
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Zostel+Coimbatore',
+        bookingUrl: 'https://www.zostel.com/zostel/coonoor/',
+        aiRank: 2,
+        matchReason: 'Student budget hostel with biometric security only 1.8 km from campus.'
+      },
+      {
+        id: 'acc_coimb_3',
+        name: 'Fairfield by Marriott Coimbatore',
+        type: 'Hotel',
+        rating: 4.7,
+        userRatingsTotal: 1890,
+        image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=800',
+        pricePerNight: 2100,
+        safetyScore: 96,
+        distanceKm: 2.8,
+        address: 'Sitra Airport Road, Coimbatore',
+        amenities: ['24/7 CCTV', 'Free High-Speed Wi-Fi', 'Fitness Center', 'Room Service'],
+        contactPhone: '+91 422 665 4545',
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Fairfield+by+Marriott+Coimbatore',
+        bookingUrl: 'https://www.marriott.com/en-us/hotels/cjbfi-fairfield-coimbatore/overview/',
+        aiRank: 3,
+        matchReason: 'High quality business hotel with 24/7 CCTV and verified safe transit options.'
+      },
+      {
+        id: 'acc_coimb_2',
+        name: 'The Residency Towers Coimbatore',
+        type: 'Hotel',
+        rating: 4.8,
+        userRatingsTotal: 4120,
+        image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&q=80&w=800',
+        pricePerNight: 2450,
+        safetyScore: 97,
+        distanceKm: 3.5,
+        address: 'Avinashi Rd, Race Course, Coimbatore',
+        amenities: ['24/7 Security', 'Free Wi-Fi', 'Gym', 'AC Rooms'],
+        contactPhone: '+91 422 224 1414',
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Residency+Towers+Coimbatore',
+        bookingUrl: 'https://www.residencyhotels.com/coimbatore.html',
+        aiRank: 4,
+        matchReason: 'Centrally located with round-the-clock security and student group friendly amenities.'
+      },
+      {
+        id: 'acc_coimb_4',
+        name: 'Welcomhotel by ITC Hotels Coimbatore',
+        type: 'Hotel',
+        rating: 4.8,
+        userRatingsTotal: 2650,
+        image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=800',
+        pricePerNight: 3100,
+        safetyScore: 98,
+        distanceKm: 4.8,
+        address: 'West Club Road, Race Course, Coimbatore',
+        amenities: ['24/7 Security', 'Free Wi-Fi', 'Multi-Cuisine Dining', 'Valet Parking'],
+        contactPhone: '+91 422 222 6555',
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Welcomhotel+ITC+Hotels+Coimbatore',
+        bookingUrl: 'https://www.itchotels.com/in/en/welcomhotelcoimbatore',
+        aiRank: 5,
+        matchReason: 'Premium stay with top-tier safety protocol for visiting delegates and teams.'
+      }
+    ];
+  }
+
+  const baseCity = city || collegeName || 'Campus Hub';
+  return [
+    {
+      id: `acc_${baseCity.replace(/[^a-zA-Z0-9]/g, '')}_1`,
+      name: `Ginger Hotel ${baseCity} Campus North`,
+      type: 'Hotel',
+      rating: 4.7,
+      userRatingsTotal: 2150,
+      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800',
+      pricePerNight: 1550,
+      safetyScore: 97,
+      distanceKm: 1.1,
+      address: `University Main Avenue, Near ${collegeName || 'Campus'}, ${baseCity}`,
+      amenities: ['24/7 Security', 'Free Wi-Fi', 'In-House Dining', 'AC Rooms'],
+      contactPhone: '+91 98401 99887',
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Ginger Hotel ' + baseCity)}`,
+      bookingUrl: `https://www.gingerhotels.com/`,
+      aiRank: 1,
+      matchReason: `Recommended by Gemini AI because it is within your target budget (₹1550/night), only 1.1 km from campus with a 4.7★ rating and verified safety.`
+    },
+    {
+      id: `acc_${baseCity.replace(/[^a-zA-Z0-9]/g, '')}_2`,
+      name: `Zostel Student Hub ${baseCity}`,
+      type: 'Student Hostel',
+      rating: 4.8,
+      userRatingsTotal: 1890,
+      image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=800',
+      pricePerNight: 780,
+      safetyScore: 96,
+      distanceKm: 1.7,
+      address: `College Road Junction, ${baseCity}`,
+      amenities: ['Biometric Access', 'Free Wi-Fi', 'Co-working Lounge', 'Breakfast'],
+      contactPhone: '+91 98402 77665',
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Zostel ' + baseCity)}`,
+      bookingUrl: `https://www.zostel.com/`,
+      aiRank: 2,
+      matchReason: `High-value student hostel with 24/7 biometric security and student amenities within 1.7 km of campus.`
+    },
+    {
+      id: `acc_${baseCity.replace(/[^a-zA-Z0-9]/g, '')}_3`,
+      name: `Scholar Stays Premium PG`,
+      type: 'Student PG',
+      rating: 4.7,
+      userRatingsTotal: 960,
+      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&q=80&w=800',
+      pricePerNight: 950,
+      safetyScore: 94,
+      distanceKm: 1.4,
+      address: `Tech Park Zone, Near ${collegeName || 'Campus'}`,
+      amenities: ['CCTV Monitored', 'Free High-Speed Wi-Fi', 'Study Desks', 'Meals'],
+      contactPhone: '+91 98404 33221',
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Student PG near ' + (collegeName || baseCity))}`,
+      bookingUrl: `https://www.google.com/travel/hotels?q=${encodeURIComponent('PG near ' + (collegeName || baseCity))}`,
+      aiRank: 3,
+      matchReason: `Verified student PG with included meals, quiet study environment, and 24/7 CCTV surveillance.`
+    },
+    {
+      id: `acc_${baseCity.replace(/[^a-zA-Z0-9]/g, '')}_4`,
+      name: `Grand Palace Executive Hotel`,
+      type: 'Hotel',
+      rating: 4.6,
+      userRatingsTotal: 1420,
+      image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&q=80&w=800',
+      pricePerNight: 1950,
+      safetyScore: 95,
+      distanceKm: 2.3,
+      address: `Station Road Square, ${baseCity}`,
+      amenities: ['24/7 Security', 'Free Wi-Fi', 'Valet Parking', 'AC Rooms'],
+      contactPhone: '+91 98403 55443',
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Grand Hotel ' + baseCity)}`,
+      bookingUrl: `https://www.google.com/travel/hotels?q=${encodeURIComponent('Grand Hotel ' + baseCity)}`,
+      aiRank: 4,
+      matchReason: `Comfortable executive stay close to transit hubs with continuous security monitoring.`
+    },
+    {
+      id: `acc_${baseCity.replace(/[^a-zA-Z0-9]/g, '')}_5`,
+      name: `Fortune Park Hotel ${baseCity}`,
+      type: 'Luxury Hotel',
+      rating: 4.8,
+      userRatingsTotal: 3100,
+      image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=800',
+      pricePerNight: 2600,
+      safetyScore: 98,
+      distanceKm: 3.1,
+      address: `Airport Expressway, ${baseCity}`,
+      amenities: ['24/7 Security', 'Free Wi-Fi', 'Swimming Pool', 'Fitness Center'],
+      contactPhone: '+91 98405 11223',
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Fortune Park Hotel ' + baseCity)}`,
+      bookingUrl: `https://www.itchotels.com/`,
+      aiRank: 5,
+      matchReason: `Luxury hotel with highest safety rating (98%) and complete hospitality services.`
+    }
+  ];
+};
 
 export default api;

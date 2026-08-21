@@ -61,11 +61,22 @@ exports.getRecommendations = async (req, res) => {
 // @route   POST /api/ai/safety-score
 exports.getTravelSafetyScore = async (req, res) => {
   try {
-    const { distanceKm, travelTimeMins, eventEndTime, currentTime, weather, transportAvailable } = req.body;
+    const {
+      origin,
+      destination,
+      distanceKm,
+      travelTimeMins,
+      eventEndTime,
+      currentTime,
+      weather,
+      transportAvailable
+    } = req.body;
 
     const safetyReport = await geminiService.calculateTravelSafetyScore({
+      origin: origin || 'Your Location',
+      destination: destination || 'Campus Event Venue',
       distanceKm: Number(distanceKm) || 35,
-      travelTimeMins: Number(travelTimeMins) || 45,
+      travelTimeMins: Number(travelTimeMins) || Math.round((Number(distanceKm) || 35) * 1.3),
       eventEndTime: eventEndTime || '08:30 PM',
       currentTime: currentTime || '06:00 PM',
       weather: weather || 'Clear sky, 25°C',
@@ -181,6 +192,10 @@ const fetchLiveGooglePlacesAccommodations = (collegeName, city = '', lat = null,
           resolve(null);
         }
       });
+    });
+    req.setTimeout(2500, () => {
+      req.destroy();
+      resolve(null);
     });
     req.on('error', (e) => {
       console.warn('Google Places API network request failed:', e.message);
@@ -582,23 +597,30 @@ exports.getAccommodationRecommendations = async (req, res) => {
 // @route   POST /api/ai/chat
 exports.chatWithEventAI = async (req, res) => {
   try {
-    const { eventId, message, history } = req.body;
+    const { eventId, message, history, event: clientEvent, apiKey } = req.body;
+    const customApiKey = apiKey || req.headers['x-gemini-api-key'] || null;
     
     let event = null;
-    try {
-      const Event = require('../models/Event');
-      event = await Event.findById(eventId);
-    } catch (_e) {}
-    
-    if (!event) {
-      event = SEED_EVENTS.find(e => (e._id || e.id)?.toString() === eventId?.toString());
+    if (eventId) {
+      try {
+        const Event = require('../models/Event');
+        event = await Event.findById(eventId);
+      } catch (_e) {}
+      
+      if (!event) {
+        event = SEED_EVENTS.find(e => (e._id || e.id)?.toString() === eventId?.toString());
+      }
+    }
+
+    if (!event && clientEvent && clientEvent.title) {
+      event = clientEvent;
     }
 
     if (!event) {
-      return res.status(404).json({ success: false, message: 'Event not found' });
+      event = SEED_EVENTS[0];
     }
 
-    const reply = await geminiService.eventChatbot(event, message, history);
+    const reply = await geminiService.eventChatbot(event, message || 'Hello', history || [], customApiKey);
     res.json({ success: true, reply });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -614,6 +636,7 @@ const SEED_EVENTS = [
     category: 'Cultural',
     tags: ['Cultural', 'Dance', 'Music', 'Drama', 'Fine Arts', 'Literary'],
     collegeName: 'Amrita Vishwa Vidyapeetham',
+    nirfRank: 19,
     venue: 'Amritapuri Campus Amphitheatre',
     eventDate: '2026-11-05T09:00:00.000Z',
     entryFee: 300,
@@ -627,6 +650,7 @@ const SEED_EVENTS = [
     category: 'Entrepreneurship',
     tags: ['Entrepreneurship', 'Startup', 'Business', 'Pitch', 'Venture Capital'],
     collegeName: 'IIM Ahmedabad',
+    nirfRank: 1,
     venue: 'Louis Kahn Plaza',
     eventDate: '2026-11-12T09:00:00.000Z',
     entryFee: 500,
@@ -640,6 +664,7 @@ const SEED_EVENTS = [
     category: 'Space Technology',
     tags: ['Space Technology', 'Aerospace', 'Python', 'Robotics', 'Data Science', 'AI'],
     collegeName: 'IIST Trivandrum',
+    nirfRank: 48,
     venue: 'IIST Campus, Space Tech Lab',
     eventDate: '2026-11-20T10:00:00.000Z',
     entryFee: 0,
@@ -653,6 +678,7 @@ const SEED_EVENTS = [
     category: 'AR/VR',
     tags: ['AR/VR', 'Game Development', 'Unity', 'XR', 'UI/UX Design'],
     collegeName: 'Manipal Institute of Technology',
+    nirfRank: 61,
     venue: 'XR Innovation Hub',
     eventDate: '2026-12-03T10:00:00.000Z',
     entryFee: 200,
@@ -666,6 +692,7 @@ const SEED_EVENTS = [
     category: 'Finance & FinTech',
     tags: ['Finance & FinTech', 'Blockchain & Web3', 'Machine Learning', 'Python', 'Data Science'],
     collegeName: 'IIM Bangalore',
+    nirfRank: 2,
     venue: 'Innovation Center',
     eventDate: '2026-12-10T09:30:00.000Z',
     entryFee: 300,
@@ -679,6 +706,7 @@ const SEED_EVENTS = [
     category: 'Photography & Film',
     tags: ['Photography & Film', 'Creative Arts', 'Cultural', 'Design'],
     collegeName: 'Symbiosis Institute of Design',
+    nirfRank: 15,
     venue: 'Symbiosis Knowledge Village',
     eventDate: '2026-12-18T09:00:00.000Z',
     entryFee: 100,
@@ -692,6 +720,7 @@ const SEED_EVENTS = [
     category: 'Environment & Sustainability',
     tags: ['Environment & Sustainability', 'Data Science', 'IoT & Embedded', 'Python', 'AI'],
     collegeName: 'IIT Kharagpur',
+    nirfRank: 5,
     venue: 'Tech Pavilion',
     eventDate: '2026-08-30T09:00:00.000Z',
     entryFee: 0,
@@ -705,6 +734,7 @@ const SEED_EVENTS = [
     category: 'Social Innovation',
     tags: ['Social Innovation', 'AI', 'Machine Learning', 'Python', 'Web Development'],
     collegeName: 'Tata Institute of Social Sciences',
+    nirfRank: 60,
     venue: 'TISS Main Campus',
     eventDate: '2026-09-08T10:00:00.000Z',
     entryFee: 0,
@@ -718,6 +748,7 @@ const SEED_EVENTS = [
     category: 'Sports Technology',
     tags: ['Sports Technology', 'IoT & Embedded', 'Machine Learning', 'Data Science', 'Python'],
     collegeName: 'JSS Academy of Technical Education',
+    nirfRank: 150,
     venue: 'Sports Science Center',
     eventDate: '2026-09-20T09:00:00.000Z',
     entryFee: 150,
@@ -731,6 +762,7 @@ const SEED_EVENTS = [
     category: 'Music & Performing Arts',
     tags: ['Music & Performing Arts', 'Cultural', 'Creative Arts'],
     collegeName: 'KM Music Conservatory',
+    nirfRank: 80,
     venue: 'AR Rahman Music Hall',
     eventDate: '2026-10-30T10:00:00.000Z',
     entryFee: 200,
@@ -744,6 +776,7 @@ const SEED_EVENTS = [
     category: 'Blockchain & Web3',
     tags: ['Blockchain & Web3', 'Web Development', 'Coding', 'Finance & FinTech', 'Hackathon'],
     collegeName: 'NMIMS Mumbai',
+    nirfRank: 21,
     venue: 'Innovation Hub',
     eventDate: '2026-11-01T10:00:00.000Z',
     entryFee: 250,
@@ -757,6 +790,7 @@ const SEED_EVENTS = [
     category: 'Biomedical & Health Tech',
     tags: ['Biomedical & Health Tech', 'AI', 'Machine Learning', 'Data Science', 'IoT & Embedded'],
     collegeName: 'Christian Medical College',
+    nirfRank: 3,
     venue: 'Simulation Center',
     eventDate: '2026-11-28T09:00:00.000Z',
     entryFee: 100,
@@ -770,6 +804,7 @@ const SEED_EVENTS = [
     category: 'Hackathon',
     tags: ['AI', 'Artificial Intelligence', 'Coding', 'Hackathon', 'Web3', 'Python', 'Machine Learning'],
     collegeName: 'IIT Madras',
+    nirfRank: 1,
     venue: 'CLT Auditorium & Computing Hub',
     eventDate: '2026-08-15T09:00:00.000Z',
     entryFee: 0,
@@ -783,6 +818,7 @@ const SEED_EVENTS = [
     category: 'Robotics',
     tags: ['Robotics', 'Robotics & Drones', 'Hardware', 'IoT', 'Autonomous', 'Drone'],
     collegeName: 'NIT Trichy',
+    nirfRank: 9,
     venue: 'Robotics Center',
     eventDate: '2026-08-22T10:00:00.000Z',
     entryFee: 250,
@@ -794,8 +830,9 @@ const SEED_EVENTS = [
     title: 'DesignX National UI/UX & Product Design Summit',
     description: 'Immerse in interactive Figma design sprints, design systems workshops, and feedback sessions with Product Designers.',
     category: 'Design',
-    tags: ['Design', 'UI/UX Design', 'Figma', 'Product Design', 'User Research'],
+    tags: ['Design', 'UI/UX Design', 'UI/UX', 'Figma', 'Product Design', 'User Research'],
     collegeName: 'NIFT Bangalore',
+    nirfRank: 2,
     venue: 'Design Innovation Lab',
     eventDate: '2026-09-05T09:30:00.000Z',
     entryFee: 150,
@@ -809,6 +846,7 @@ const SEED_EVENTS = [
     category: 'Coding',
     tags: ['Coding', 'Competitive Coding', 'Algorithms', 'C++', 'Data Structures'],
     collegeName: 'BITS Pilani',
+    nirfRank: 20,
     venue: 'IPC Lab',
     eventDate: '2026-09-12T14:00:00.000Z',
     entryFee: 0,
@@ -822,6 +860,7 @@ const SEED_EVENTS = [
     category: 'Cyber Security',
     tags: ['Cyber Security', 'CTF', 'Hacking', 'Forensics', 'Networking', 'Python'],
     collegeName: 'VIT Vellore',
+    nirfRank: 11,
     venue: 'Cyber Lab & Anna Auditorium',
     eventDate: '2026-09-18T09:00:00.000Z',
     entryFee: 100,
@@ -835,6 +874,7 @@ const SEED_EVENTS = [
     category: 'Cloud Computing',
     tags: ['Cloud Computing', 'AWS', 'GCP', 'DevOps', 'Serverless', 'Docker'],
     collegeName: 'SRMIST Chennai',
+    nirfRank: 28,
     venue: 'Tech Park Auditorium',
     eventDate: '2026-09-25T10:00:00.000Z',
     entryFee: 200,
@@ -848,6 +888,7 @@ const SEED_EVENTS = [
     category: 'Data Science',
     tags: ['Data Science', 'Machine Learning', 'Deep Learning', 'Python', 'Big Data', 'Artificial Intelligence'],
     collegeName: 'IISc Bangalore',
+    nirfRank: 1,
     venue: 'JN Tata Auditorium',
     eventDate: '2026-10-02T09:00:00.000Z',
     entryFee: 0,
@@ -861,6 +902,7 @@ const SEED_EVENTS = [
     category: 'Game Development',
     tags: ['Game Development', 'Unity', 'Unreal', 'C++', 'UI/UX Design', '3D Design'],
     collegeName: 'IIIT Hyderabad',
+    nirfRank: 55,
     venue: 'Gaming Studio',
     eventDate: '2026-10-10T11:00:00.000Z',
     entryFee: 150,
@@ -874,6 +916,7 @@ const SEED_EVENTS = [
     category: 'IoT & Embedded',
     tags: ['IoT & Embedded', 'Hardware', 'Robotics', 'Arduino', 'ROS', 'C++'],
     collegeName: 'IIT Bombay',
+    nirfRank: 3,
     venue: 'Victor Menezes Convention Centre',
     eventDate: '2026-10-18T10:00:00.000Z',
     entryFee: 0,
@@ -887,6 +930,7 @@ const SEED_EVENTS = [
     category: 'AI & Healthcare',
     tags: ['Artificial Intelligence', 'Machine Learning', 'Python', 'Biomedical', 'Data Science'],
     collegeName: 'IIT Delhi & AIIMS',
+    nirfRank: 2,
     venue: 'Bharti School of Telecom',
     eventDate: '2026-10-24T09:30:00.000Z',
     entryFee: 200,
@@ -900,6 +944,7 @@ const SEED_EVENTS = [
     category: 'Hackathon',
     tags: ['Hackathon', 'AI', 'Robotics', 'Cloud Computing', 'Coding', 'South India', 'Kerala'],
     collegeName: 'National Institute of Technology Calicut (NITC)',
+    nirfRank: 23,
     venue: 'NIT Calicut OAT & Main Campus Complex',
     eventDate: '2026-10-16T09:00:00.000Z',
     entryFee: 0,
@@ -913,6 +958,7 @@ const SEED_EVENTS = [
     category: 'Coding',
     tags: ['Coding', 'Algorithms', 'AI', 'UNESCO', 'Anna University', 'South India', 'Tamil Nadu'],
     collegeName: 'College of Engineering Guindy, Anna University',
+    nirfRank: 13,
     venue: 'Vivekananda Auditorium & CEG Campus',
     eventDate: '2026-09-28T09:00:00.000Z',
     entryFee: 200,
@@ -926,6 +972,7 @@ const SEED_EVENTS = [
     category: 'IoT & Embedded',
     tags: ['IoT & Embedded', 'Hardware', 'Robotics', 'EV Tech', 'PSG Tech', 'South India', 'Coimbatore'],
     collegeName: 'PSG College of Technology',
+    nirfRank: 63,
     venue: 'PSG Tech Quadrangle & Assembly Hall',
     eventDate: '2026-10-09T09:30:00.000Z',
     entryFee: 250,
@@ -939,6 +986,7 @@ const SEED_EVENTS = [
     category: 'Web Development',
     tags: ['Web Development', 'AI', 'Cyber Security', 'SSN', 'South India', 'Chennai'],
     collegeName: 'SSN College of Engineering',
+    nirfRank: 45,
     venue: 'SSN Auditorium & CSE Block',
     eventDate: '2026-11-14T09:00:00.000Z',
     entryFee: 150,
@@ -952,6 +1000,7 @@ const SEED_EVENTS = [
     category: 'AI & Healthcare',
     tags: ['AI', 'Coding', 'Machine Learning', 'Game Development', 'IIIT Hyderabad', 'South India', 'Telangana'],
     collegeName: 'IIIT Hyderabad',
+    nirfRank: 55,
     venue: 'Felicity Ground & Nilgiri Block',
     eventDate: '2026-10-23T10:00:00.000Z',
     entryFee: 0,
@@ -963,8 +1012,9 @@ const SEED_EVENTS = [
     title: 'Atmos 2026: BITS Pilani Hyderabad Techno-Management Fest',
     description: 'High-octane Drone Racing League, Quadcopter Autonomous Challenges, Algorithmic Trading Arena, and AI Prompt Engineering Sprints.',
     category: 'Robotics',
-    tags: ['Robotics', 'Drones', 'Finance & FinTech', 'AI', 'BITS Pilani', 'South India', 'Hyderabad'],
+    tags: ['Robotics', 'Robotics & Drones', 'Drones', 'Finance & FinTech', 'AI', 'BITS Pilani', 'South India', 'Hyderabad'],
     collegeName: 'BITS Pilani Hyderabad Campus',
+    nirfRank: 58,
     venue: 'BITS Auditorium & Tech Lawns',
     eventDate: '2026-11-06T09:30:00.000Z',
     entryFee: 200,
@@ -978,6 +1028,7 @@ const SEED_EVENTS = [
     category: 'Cultural',
     tags: ['Cultural', 'Music & Performing Arts', 'Beachside Fest', 'NITK Surathkal', 'South India', 'Karnataka'],
     collegeName: 'NITK Surathkal',
+    nirfRank: 12,
     venue: 'NITK Beach Pavilion & OAT',
     eventDate: '2026-12-05T09:00:00.000Z',
     entryFee: 300,
@@ -991,6 +1042,7 @@ const SEED_EVENTS = [
     category: 'Hackathon',
     tags: ['Hackathon', 'IoT & Embedded', 'CleanTech', 'RVCE', 'South India', 'Bengaluru'],
     collegeName: 'RV College of Engineering (RVCE)',
+    nirfRank: 89,
     venue: 'RVCE Main Auditorium & Tech Park',
     eventDate: '2026-11-22T09:00:00.000Z',
     entryFee: 100,
@@ -1002,8 +1054,9 @@ const SEED_EVENTS = [
     title: 'Kuruksastra 2026: National Cultural & Design Festival',
     description: 'SASTRA University\'s grand cultural spectacle bringing together classical music, dance, short film, digital art, and UI/UX design challenges.',
     category: 'Cultural',
-    tags: ['Cultural', 'Design', 'UI/UX', 'Music & Performing Arts', 'SASTRA', 'South India', 'Thanjavur'],
+    tags: ['Cultural', 'Design', 'UI/UX Design', 'Music & Performing Arts', 'SASTRA', 'South India', 'Thanjavur'],
     collegeName: 'SASTRA Deemed University',
+    nirfRank: 34,
     venue: 'SASTRA Campus Auditorium',
     eventDate: '2026-10-04T09:30:00.000Z',
     entryFee: 200,
@@ -1017,6 +1070,7 @@ const SEED_EVENTS = [
     category: 'Cultural',
     tags: ['Cultural', 'Photography & Film', 'Coding', 'CET Trivandrum', 'South India', 'Kerala'],
     collegeName: 'College of Engineering Trivandrum (CET)',
+    nirfRank: 95,
     venue: 'CET Amphitheatre & PG Block',
     eventDate: '2026-11-26T09:00:00.000Z',
     entryFee: 150,
@@ -1024,4 +1078,6 @@ const SEED_EVENTS = [
     status: 'approved'
   }
 ];
+
+exports.SEED_EVENTS = SEED_EVENTS;
 

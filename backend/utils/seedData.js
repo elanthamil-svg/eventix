@@ -16,6 +16,7 @@ const sampleEvents = [
     tags: ['AI', 'Coding', 'Hackathon', 'Web3', 'Python'],
     poster: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'IIT Madras',
+    nirfRank: 1,
     venue: 'CLT Auditorium & Central Computing Center',
     location: {
       address: 'IIT P.O., Chennai, Tamil Nadu 600036',
@@ -48,9 +49,10 @@ const sampleEvents = [
     title: 'RoboQuest 2.0: Autonomous Drone & Bot Championship',
     description: 'Compete in obstacle navigation, autonomous line follower, and arena combat robotics challenges. Test your hardware and mechatronic design skills.',
     category: 'Robotics',
-    tags: ['Robotics', 'Hardware', 'IoT', 'Autonomous'],
+    tags: ['Robotics', 'Robotics & Drones', 'Hardware', 'IoT', 'Autonomous', 'Drone'],
     poster: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'NIT Trichy',
+    nirfRank: 9,
     venue: 'Robotics Center, Mechanical Complex',
     location: {
       address: 'Tanjore Main Road, Tiruchirappalli, Tamil Nadu 620015',
@@ -82,9 +84,10 @@ const sampleEvents = [
     title: 'DesignX National UI/UX & Product Design Summit',
     description: 'Immerse in interactive Figma design sprints, design systems workshops, and feedback sessions with top Product Designers from leading tech companies.',
     category: 'Design',
-    tags: ['Design', 'UI/UX', 'Figma', 'Product Design'],
+    tags: ['Design', 'UI/UX Design', 'UI/UX', 'Figma', 'Product Design', 'User Research'],
     poster: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'NIFT Bangalore',
+    nirfRank: 2,
     venue: 'Design Innovation Lab',
     location: {
       address: '27th Main Rd, Sector 1, HSR Layout, Bengaluru 560102',
@@ -116,9 +119,10 @@ const sampleEvents = [
     title: 'CodeSprint 2026: Speed Algorithmic Contest',
     description: 'Fast-paced ICPC style competitive programming clash. Solve 8 complex algorithmic problems under pressure and rank on the national leaderboard.',
     category: 'Coding',
-    tags: ['Coding', 'Algorithms', 'C++', 'Data Structures'],
+    tags: ['Coding', 'Competitive Coding', 'Algorithms', 'C++', 'Data Structures'],
     poster: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=1200',
     collegeName: 'BITS Pilani',
+    nirfRank: 20,
     venue: 'IPC Lab & Online Arena',
     location: {
       address: 'Vidya Vihar Campus, Pilani, Rajasthan 333031',

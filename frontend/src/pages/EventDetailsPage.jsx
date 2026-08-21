@@ -20,14 +20,17 @@ import {
   FileText,
   Download,
   ExternalLink,
-  Compass
+  Compass,
+  RefreshCw,
+  SlidersHorizontal,
+  Info
 } from 'lucide-react';
 import AISafetyScoreCard from '../components/AISafetyScoreCard';
 import AIAccommodationCard from '../components/AIAccommodationCard';
 import BrochureModal from '../components/BrochureModal';
 import EventChatbot from '../components/EventChatbot';
 import Toast from '../components/Toast';
-import api, { MOCK_EVENTS } from '../services/api';
+import api, { MOCK_EVENTS, getMockAccommodations } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function EventDetailsPage() {
@@ -43,6 +46,8 @@ export default function EventDetailsPage() {
   const [teamName, setTeamName] = useState('');
   const [teamSize, setTeamSize] = useState(1);
   const [accommodations, setAccommodations] = useState([]);
+  const [accLoading, setAccLoading] = useState(false);
+  const [userBudget, setUserBudget] = useState(1500);
   const [travelDistance, setTravelDistance] = useState(120);
   const [toastMsg, setToastMsg] = useState('');
 
@@ -50,7 +55,7 @@ export default function EventDetailsPage() {
     setLoading(true);
     api.get(`/events/${id}`)
       .then(res => {
-        if (res.data.success) setEvent(res.data.data);
+        if (res.data.success && res.data.data) setEvent(res.data.data);
       })
       .catch(() => {
         const found = MOCK_EVENTS.find(e => (e._id || e.id) === id) || MOCK_EVENTS[0];
@@ -59,23 +64,38 @@ export default function EventDetailsPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const loadAccommodations = (budgetVal = userBudget, distVal = travelDistance) => {
+    if (!event) return;
+    setAccLoading(true);
+    api.post('/ai/accommodations', {
+      eventId: id,
+      userBudget: budgetVal || 1500,
+      distanceKm: distVal || 120,
+      collegeName: event.collegeName,
+      city: event.location?.city,
+      lat: event.location?.lat,
+      lng: event.location?.lng
+    })
+    .then(res => {
+      if (res.data?.success && res.data?.data && res.data.data.length > 0) {
+        setAccommodations(res.data.data);
+      } else {
+        const fallback = getMockAccommodations(event.collegeName, event.location?.city);
+        setAccommodations(fallback);
+      }
+    })
+    .catch(() => {
+      const fallback = getMockAccommodations(event.collegeName, event.location?.city);
+      setAccommodations(fallback);
+    })
+    .finally(() => setAccLoading(false));
+  };
+
   useEffect(() => {
     if (event) {
-      api.post('/ai/accommodations', {
-        eventId: id,
-        userBudget: 1500,
-        distanceKm: travelDistance || 120,
-        collegeName: event.collegeName,
-        city: event.location?.city,
-        lat: event.location?.lat,
-        lng: event.location?.lng
-      })
-      .then(res => {
-        if (res.data.success && res.data.data) setAccommodations(res.data.data);
-      })
-      .catch(() => {});
+      loadAccommodations(userBudget, travelDistance);
     }
-  }, [id, event, travelDistance]);
+  }, [id, event, travelDistance, userBudget]);
 
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
@@ -167,8 +187,8 @@ export default function EventDetailsPage() {
               onClick={() => setShowBrochureModal(true)}
               className="px-5 py-2.5 text-xs font-bold rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center gap-2 transition-all"
             >
-              <FileText className="w-4 h-4 text-purple-400" />
-              <span>View / Print Official Brochure</span>
+              <Download className="w-4 h-4 text-purple-400" />
+              <span>Download Official Brochure</span>
             </button>
             <div className="text-[11px] text-slate-400 text-center">
               Deadline: {new Date(event.registrationDeadline).toLocaleDateString()}
@@ -241,7 +261,7 @@ export default function EventDetailsPage() {
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <BedDouble className="w-3.5 h-3.5 text-kaggle-cyan" /> AI Accommodations (&gt;100km)
+          <BedDouble className="w-3.5 h-3.5 text-kaggle-cyan" /> AI Accommodations
         </button>
       </div>
 
@@ -275,7 +295,7 @@ export default function EventDetailsPage() {
                     onClick={() => setShowBrochureModal(true)}
                     className="px-4 py-2 text-xs font-bold rounded-lg bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-sm"
                   >
-                    <FileText className="w-3.5 h-3.5" /> View Official Brochure
+                    <Download className="w-3.5 h-3.5" /> Download Official Brochure
                   </button>
                 </div>
 
@@ -358,7 +378,7 @@ export default function EventDetailsPage() {
                     onClick={() => setShowBrochureModal(true)}
                     className="kaggle-btn-primary text-xs px-4 py-2 font-bold flex items-center gap-1.5"
                   >
-                    <FileText className="w-3.5 h-3.5" /> View / Print Full Brochure
+                    <Download className="w-3.5 h-3.5" /> Download Full Brochure
                   </button>
                 </div>
               </div>
@@ -475,7 +495,7 @@ export default function EventDetailsPage() {
                   <div>
                     <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-purple-400" />
-                      <span>Printable Verified Pamphlet</span>
+                      <span>Official Verified Brochure</span>
                     </h3>
                     <p className="text-xs text-slate-400 mt-1">Generated dynamically with schedule, rules, eligibility and campus contact details.</p>
                   </div>
@@ -483,7 +503,7 @@ export default function EventDetailsPage() {
                     onClick={() => setShowBrochureModal(true)}
                     className="kaggle-btn-primary text-xs px-5 py-2.5 font-bold flex items-center justify-center gap-2 shrink-0"
                   >
-                    <FileText className="w-4 h-4" /> Open Full Brochure Viewer
+                    <Download className="w-4 h-4" /> Download Official Brochure
                   </button>
                 </div>
 
@@ -504,20 +524,34 @@ export default function EventDetailsPage() {
                 style={{ background: 'linear-gradient(135deg,rgba(139,92,246,0.1) 0%,rgba(32,190,255,0.06) 100%)', border: '1px solid rgba(139,92,246,0.25)' }}>
                 <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
                   style={{ background: 'radial-gradient(circle,rgba(139,92,246,0.15) 0%,transparent 70%)', transform: 'translate(30%,-30%)' }} />
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="p-2.5 rounded-xl" style={{ background: 'rgba(139,92,246,0.15)' }}>
-                    <BedDouble className="w-5 h-5" style={{ color: '#8B5CF6' }} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="text-base font-black text-slate-900 dark:text-white">Gemini AI Accommodation Agent</h3>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black" style={{ background: '#8B5CF6', color: '#fff' }}>Gemini AI</span>
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl" style={{ background: 'rgba(139,92,246,0.15)' }}>
+                      <BedDouble className="w-5 h-5" style={{ color: '#8B5CF6' }} />
                     </div>
-                    <p className="text-xs text-slate-400">Top 5 picks near campus ranked live by Gemini AI Agent & Google Places</p>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="text-base font-black text-slate-900 dark:text-white">Gemini AI Accommodation Agent</h3>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black" style={{ background: '#8B5CF6', color: '#fff' }}>Gemini AI</span>
+                      </div>
+                      <p className="text-xs text-slate-400">Top 5 student hostels, PGs & hotels near {event?.collegeName || 'host campus'} ranked live</p>
+                    </div>
                   </div>
+
+                  <button
+                    onClick={() => loadAccommodations(userBudget, travelDistance)}
+                    disabled={accLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all self-start sm:self-auto"
+                    style={{ background: 'rgba(139,92,246,0.15)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' }}
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${accLoading ? 'animate-spin' : ''}`} />
+                    {accLoading ? 'AI Ranking...' : 'Re-rank Stays'}
+                  </button>
                 </div>
-                <div className="flex items-center gap-4 mt-3 pt-3 relative z-10" style={{ borderTop: '1px solid rgba(139,92,246,0.15)' }}>
-                  {[{ label: 'Budget Match', val: '✓' }, { label: 'Safety Verified', val: '✓' }, { label: 'Live Google Places', val: 'Active' }, { label: 'Gemini AI Agent', val: 'Top 5 Picks' }].map(({ label, val }) => (
+
+                <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 relative z-10" style={{ borderTop: '1px solid rgba(139,92,246,0.15)' }}>
+                  {[{ label: 'Budget Match', val: '✓' }, { label: 'Safety Verified', val: '✓' }, { label: 'Campus Distance', val: `${travelDistance} km` }, { label: 'AI Agent', val: 'Top 5 Ranked' }].map(({ label, val }) => (
                     <div key={label} className="text-xs">
                       <span style={{ color: '#64748B' }}>{label}: </span>
                       <strong style={{ color: '#8B5CF6' }}>{val}</strong>
@@ -526,11 +560,88 @@ export default function EventDetailsPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {accommodations.map((acc, i) => (
-                  <AIAccommodationCard key={acc.id || i} accommodation={acc} rank={i + 1} />
-                ))}
+              {/* Interactive Budget & Distance Filters */}
+              <div className="kaggle-card p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-purple-400" /> Student Budget:
+                  </span>
+                  {[
+                    { label: 'All Stays', val: 5000 },
+                    { label: 'Under ₹1,000 (PG/Hostel)', val: 1000 },
+                    { label: 'Under ₹2,000 (Standard)', val: 2000 },
+                    { label: 'Under ₹3,500 (Hotel)', val: 3500 }
+                  ].map((b) => (
+                    <button
+                      key={b.val}
+                      onClick={() => setUserBudget(b.val)}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                        userBudget === b.val
+                          ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
+                          : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
+
               </div>
+
+              {/* Loading Skeleton */}
+              {accLoading && (
+                <div className="space-y-4">
+                  {[1, 2].map((sk) => (
+                    <div key={sk} className="kaggle-card p-5 animate-pulse space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="h-4 w-48 bg-slate-700 rounded" />
+                        <div className="h-4 w-20 bg-slate-700 rounded" />
+                      </div>
+                      <div className="h-32 bg-slate-800/80 rounded-xl" />
+                      <div className="h-3 w-full bg-slate-700/60 rounded" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Accommodations List */}
+              {!accLoading && accommodations.length > 0 && (
+                <div className="space-y-4">
+                  {accommodations
+                    .filter((acc) => !userBudget || userBudget >= 5000 || acc.pricePerNight <= userBudget)
+                    .map((acc, i) => (
+                      <AIAccommodationCard key={acc.id || i} accommodation={acc} rank={i + 1} />
+                    ))}
+                  {accommodations.filter((acc) => !userBudget || userBudget >= 5000 || acc.pricePerNight <= userBudget).length === 0 && (
+                    <div className="kaggle-card p-8 text-center space-y-3">
+                      <p className="text-sm text-slate-400">No accommodations found under ₹{userBudget}/night.</p>
+                      <button
+                        onClick={() => setUserBudget(5000)}
+                        className="kaggle-btn-primary text-xs px-4 py-2"
+                      >
+                        Show All Accommodations
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Fallback if zero accommodations returned */}
+              {!accLoading && accommodations.length === 0 && (
+                <div className="kaggle-card p-8 text-center space-y-4">
+                  <BedDouble className="w-12 h-12 text-purple-400 mx-auto opacity-60" />
+                  <div>
+                    <h4 className="text-sm font-bold text-white">No accommodations loaded yet</h4>
+                    <p className="text-xs text-slate-400 mt-1">Click below to fetch recommended student hostels & hotels near this campus.</p>
+                  </div>
+                  <button
+                    onClick={() => loadAccommodations(userBudget, travelDistance)}
+                    className="kaggle-btn-primary text-xs px-5 py-2.5 font-bold"
+                  >
+                    Load AI Recommendations
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
