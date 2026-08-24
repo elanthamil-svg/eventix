@@ -57,13 +57,14 @@ exports.getRecommendations = async (req, res) => {
   }
 };
 
-// @desc    Calculate AI Travel Safety Score for event
+// @desc    Calculate AI Travel Safety Score & Mode-Specific Route for event
 // @route   POST /api/ai/safety-score
 exports.getTravelSafetyScore = async (req, res) => {
   try {
     const {
       origin,
       destination,
+      mode = 'car',
       distanceKm,
       travelTimeMins,
       eventEndTime,
@@ -75,6 +76,7 @@ exports.getTravelSafetyScore = async (req, res) => {
     const safetyReport = await geminiService.calculateTravelSafetyScore({
       origin: origin || 'Your Location',
       destination: destination || 'Campus Event Venue',
+      mode: mode.toLowerCase(),
       distanceKm: Number(distanceKm) || 35,
       travelTimeMins: Number(travelTimeMins) || Math.round((Number(distanceKm) || 35) * 1.3),
       eventEndTime: eventEndTime || '08:30 PM',
@@ -145,7 +147,7 @@ const fetchLiveGooglePlacesAccommodations = (collegeName, city = '', lat = null,
               } else if (idx % 4 === 2) {
                 image = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800';
               } else if (idx % 4 === 3) {
-                image = 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&q=80&w=800';
+                image = 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&q=80&w=800';
               }
 
               const rating = place.rating || Number((4.1 + (idx * 0.1)).toFixed(1));
@@ -233,7 +235,7 @@ const getRealCollegeAccommodations = (collegeName = '', city = '') => {
         type: 'Hotel',
         rating: 4.8,
         userRatingsTotal: 4120,
-        image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&q=80&w=800',
+        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&q=80&w=800',
         pricePerNight: 2450,
         safetyScore: 97,
         distanceKm: 3.5,
@@ -334,7 +336,7 @@ const getRealCollegeAccommodations = (collegeName = '', city = '') => {
         type: 'Luxury Hotel',
         rating: 4.7,
         userRatingsTotal: 3890,
-        image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&q=80&w=800',
+        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&q=80&w=800',
         pricePerNight: 2400,
         safetyScore: 98,
         distanceKm: 3.4,

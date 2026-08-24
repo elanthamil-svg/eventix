@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       setLoading(false);
       // Fallback demo logins when backend is unreachable
-      const hint = roleHint || (email.includes('organizer') ? 'organizer' : email.includes('admin') ? 'admin' : 'student');
+      const hint = roleHint || (email.includes('admin') ? 'admin' : 'student');
       switchRoleDemo(hint);
       return { success: true };
     }
@@ -110,16 +110,6 @@ export const AuthProvider = ({ children }) => {
           phone: '+91 98400 12345',
           relation: 'Father'
         }
-      });
-    } else if (roleName === 'organizer') {
-      setUser({
-        _id: 'usr_organizer_demo',
-        name: 'Priya Sundaram',
-        email: 'organizer@iitm.ac.in',
-        role: 'organizer',
-        college: 'IIT Madras',
-        department: 'Event Advisory Council',
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400'
       });
     } else if (roleName === 'admin') {
       setUser({

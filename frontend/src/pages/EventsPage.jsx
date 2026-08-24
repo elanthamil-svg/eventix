@@ -106,43 +106,43 @@ export default function EventsPage() {
   return (
     <div className="space-y-6">
       
-      {/* Kaggle Header & View Toggle */}
+      {/* Header & View Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>Inter-College Competitions</span>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-kaggle-cyan/10 text-kaggle-cyan border border-kaggle-cyan/30">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300">
               {events.length} Active
             </span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">Browse nationwide hackathons, robotics challenges, and coding contests.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Browse nationwide hackathons, robotics challenges, and coding contests.</p>
         </div>
 
         {/* View Toggle */}
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
           <button
             onClick={() => setViewMode('grid')}
-            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
-              viewMode === 'grid' ? 'bg-white dark:bg-slate-800 text-kaggle-cyan shadow-sm' : 'text-slate-500'
+            className={`p-1.5 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
+              viewMode === 'grid' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-semibold' : 'text-slate-500'
             }`}
             title="Grid View"
           >
-            <LayoutGrid className="w-4 h-4" /> Grid
+            <LayoutGrid className="w-3.5 h-3.5" /> Grid
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
-              viewMode === 'list' ? 'bg-white dark:bg-slate-800 text-kaggle-cyan shadow-sm' : 'text-slate-500'
+            className={`p-1.5 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
+              viewMode === 'list' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-semibold' : 'text-slate-500'
             }`}
             title="List View"
           >
-            <List className="w-4 h-4" /> List
+            <List className="w-3.5 h-3.5" /> List
           </button>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="kaggle-card p-4 space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-4 shadow-sm">
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="relative sm:col-span-2">
@@ -152,7 +152,7 @@ export default function EventsPage() {
               placeholder="Filter by title, college, tech tag..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-900 text-xs rounded-xl border border-transparent focus:border-kaggle-cyan text-slate-900 dark:text-white focus:outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/60 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:border-slate-400 text-slate-900 dark:text-white focus:outline-none"
             />
           </div>
 
@@ -160,26 +160,26 @@ export default function EventsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 text-xs rounded-xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/60 text-xs rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-semibold"
             >
-              <option value="nirf">🏆 NIRF Rank (Top Colleges)</option>
-              <option value="prize">💰 Highest Prize Pool</option>
-              <option value="date">📅 Event Date</option>
+              <option value="nirf">NIRF Rank (Top Colleges)</option>
+              <option value="prize">Highest Prize Pool</option>
+              <option value="date">Event Date</option>
             </select>
 
             <select
               value={feeFilter}
               onChange={(e) => setFeeFilter(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 text-xs rounded-xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-medium"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/60 text-xs rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium"
             >
               <option value="all">All Fees</option>
-              <option value="free">Free Entry Only</option>
-              <option value="paid">Paid Registration</option>
+              <option value="free">Free Entry</option>
+              <option value="paid">Paid</option>
             </select>
 
             <button
               onClick={clearFilters}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-500 hover:text-rose-500 shrink-0"
+              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 shrink-0"
               title="Clear Filters"
             >
               <X className="w-4 h-4" />
@@ -188,15 +188,15 @@ export default function EventsPage() {
         </div>
 
         {/* Category Pills Slider */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => { setCategory(cat); setSearchParams({ category: cat }); }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-xs transition-colors whitespace-nowrap ${
                 category === cat 
-                  ? 'bg-kaggle-cyan text-slate-950 font-bold shadow-sm' 
-                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold' 
+                  : 'bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
               }`}
             >
               {cat}
@@ -223,7 +223,7 @@ export default function EventsPage() {
           </button>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {events.map((evt) => (
             <EventCard
               key={evt._id || evt.id}
@@ -235,50 +235,47 @@ export default function EventsPage() {
         </div>
       ) : (
         /* Kaggle List View Table */
-        <div className="kaggle-card overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {events.map((evt) => (
-              <div key={evt._id || evt.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-900/40 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-kaggle-cyan text-sm shrink-0">
-                    {evt.collegeName ? evt.collegeName.substring(0, 2).toUpperCase() : 'CC'}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white hover:text-kaggle-cyan cursor-pointer">
-                        {evt.title}
-                      </h4>
-                      {evt.nirfRank && (
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30">
-                          🏆 NIRF #{evt.nirfRank}
-                        </span>
-                      )}
+            {events.map((evt) => {
+              const evtId = evt._id || evt.id;
+              return (
+                <Link
+                  key={evtId}
+                  to={`/events/${evtId}`}
+                  className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between gap-4 transition-colors cursor-pointer block sm:flex"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 text-sm shrink-0">
+                      {evt.collegeName ? evt.collegeName.substring(0, 2).toUpperCase() : 'CC'}
                     </div>
-                    <p className="text-xs text-slate-500">{evt.collegeName} • {evt.category}</p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                          {evt.title}
+                        </h4>
+                        {evt.nirfRank && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400">
+                            NIRF #{evt.nirfRank}
+                          </span>
+                        )}
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                          {evt.category}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{evt.collegeName}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-4 shrink-0 text-xs">
-                  <div className="font-bold text-emerald-500 hidden sm:block">{evt.prizePool}</div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setSelectedBrochureEvent(evt)}
-                      className="px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold flex items-center gap-1 transition-colors"
-                      title="Download Official Brochure"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span className="hidden md:inline">Brochure</span>
-                    </button>
-                    <Link to={`/events/${evt._id || evt.id}`} className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                      View Details
-                    </Link>
-                    <Link to={`/events/${evt._id || evt.id}?register=true`} className="kaggle-btn-primary text-xs px-3 py-1.5 font-extrabold">
-                      Register Now
-                    </Link>
+                  <div className="flex items-center gap-4 shrink-0 text-xs mt-2 sm:mt-0 justify-between sm:justify-end">
+                    <div className="font-bold text-slate-700 dark:text-slate-300">{evt.prizePool}</div>
+                    <span className="px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[10px] font-bold">
+                      {evt.entryFee === 0 ? 'Free Entry' : `₹${evt.entryFee}`}
+                    </span>
                   </div>
-                </div>
-              </div>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

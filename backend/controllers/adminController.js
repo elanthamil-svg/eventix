@@ -1,4 +1,5 @@
 const User = require('../models/User');
+
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
 
@@ -79,6 +80,58 @@ exports.updateUserRole = async (req, res) => {
     const { role } = req.body;
     const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
     res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get admin's own professional profile
+// @route   GET /api/admin/profile
+exports.getAdminProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) return res.status(404).json({ success: false, message: 'Admin not found' });
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update admin professional profile details
+// @route   PUT /api/admin/profile
+exports.updateAdminProfile = async (req, res) => {
+  try {
+    const {
+      name, avatar,
+      title, organisation, bio, website, officialPhone,
+      linkedin, twitter, expertise, location,
+      yearsOfExperience, totalEventsManaged, profileVisible
+    } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        ...(name && { name }),
+        ...(avatar && { avatar }),
+        adminProfile: {
+          title: title || '',
+          organisation: organisation || '',
+          bio: bio || '',
+          website: website || '',
+          officialPhone: officialPhone || '',
+          linkedin: linkedin || '',
+          twitter: twitter || '',
+          expertise: Array.isArray(expertise) ? expertise : [],
+          location: location || '',
+          yearsOfExperience: Number(yearsOfExperience) || 0,
+          totalEventsManaged: Number(totalEventsManaged) || 0,
+          profileVisible: profileVisible !== false
+        }
+      },
+      { new: true, runValidators: false }
+    ).select('-password');
+
+    res.json({ success: true, data: updatedUser });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

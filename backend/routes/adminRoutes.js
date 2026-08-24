@@ -5,7 +5,9 @@ const {
   getPendingEvents,
   updateEventStatus,
   getUsers,
-  updateUserRole
+  updateUserRole,
+  getAdminProfile,
+  updateAdminProfile
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { authorizeRoles } = require('../middleware/roleMiddleware');
@@ -18,5 +20,9 @@ router.get('/pending-events', getPendingEvents);
 router.put('/events/:id/status', updateEventStatus);
 router.get('/users', getUsers);
 router.put('/users/:id/role', updateUserRole);
+
+// Admin professional profile
+router.get('/profile', getAdminProfile);
+router.put('/profile', updateAdminProfile);
 
 module.exports = router;

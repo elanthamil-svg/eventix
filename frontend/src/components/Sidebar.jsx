@@ -4,13 +4,11 @@ import {
   Trophy, 
   Sparkles, 
   LayoutDashboard, 
-  PlusCircle, 
   ShieldCheck, 
-  Compass, 
   Home,
-  Bookmark,
   ChevronRight,
-  UserCheck
+  User,
+  Compass
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,221 +32,179 @@ export default function Sidebar({ isOpen, onClose }) {
     <>
       {/* Mobile Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 md:hidden"
+        className="fixed inset-0 bg-black/30 backdrop-blur-xs z-40 md:hidden"
         onClick={onClose} 
       />
 
-      <aside className="fixed top-16 left-0 bottom-0 z-40 w-72 bg-white dark:bg-kaggle-darkcard border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shrink-0 overflow-y-auto shadow-2xl md:shadow-none md:sticky md:top-16 md:self-start md:h-[calc(100vh-4rem)] md:z-30 transition-all duration-200">
+      <aside className="fixed top-16 left-0 bottom-0 z-40 w-64 bg-[#F7F7F8] dark:bg-[#121316] border-r border-[#E5E7EB] dark:border-[#1F2023] flex flex-col justify-between shrink-0 overflow-y-auto shadow-xl md:shadow-none md:sticky md:top-16 md:self-start md:h-[calc(100vh-4rem)] md:z-30 transition-colors duration-200">
         
-        <div className="p-5 space-y-6">
+        <div className="p-4 space-y-6">
           
-          {/* Navigation Section */}
-          <div className="space-y-2">
-            <div className="px-3 text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-3">
-              Menu Navigation
+          {/* Main Navigation */}
+          <div className="space-y-1">
+            <div className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+              Menu
             </div>
 
-            {/* STUDENT ROLE LINKS */}
             {role === 'student' && (
               <>
-                {/* Dashboard Placed ABOVE Home as requested */}
                 <Link
                   to="/dashboard"
                   onClick={handleNavClick}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isActive('/dashboard') 
-                      ? 'bg-kaggle-cyan text-slate-950 shadow-sm' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#EAEAEA] dark:bg-[#1E1F24] text-slate-900 dark:text-white font-semibold' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <LayoutDashboard className="w-5 h-5" />
-                    <span>Student Dashboard</span>
+                    <LayoutDashboard className="w-4 h-4 stroke-[1.75]" />
+                    <span>Dashboard</span>
                   </div>
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
-                    Interests
-                  </span>
                 </Link>
 
                 <Link
                   to="/"
                   onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isActive('/') 
-                      ? 'bg-kaggle-lightcyan/60 dark:bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan font-bold' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#EAEAEA] dark:bg-[#1E1F24] text-slate-900 dark:text-white font-semibold' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Home className="w-5 h-5" />
+                  <Home className="w-4 h-4 stroke-[1.75]" />
                   <span>Home</span>
                 </Link>
 
                 <Link
                   to="/events"
                   onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isActive('/events') 
-                      ? 'bg-kaggle-lightcyan/60 dark:bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan font-bold' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#EAEAEA] dark:bg-[#1E1F24] text-slate-900 dark:text-white font-semibold' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Trophy className="w-5 h-5" />
-                  <span>Explore Events & Fests</span>
+                  <Trophy className="w-4 h-4 stroke-[1.75]" />
+                  <span>Explore Events</span>
                 </Link>
 
                 <Link
                   to="/ai-match"
                   onClick={handleNavClick}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isActive('/ai-match')
-                      ? 'bg-gradient-to-r from-kaggle-cyan to-purple-500 text-white shadow-md'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#EAEAEA] dark:bg-[#1E1F24] text-slate-900 dark:text-white font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white'
                   }`}
-                  style={isActive('/ai-match') ? {} : {}}
                 >
                   <div className="flex items-center gap-3">
-                    <Sparkles className="w-5 h-5 text-kaggle-cyan" />
+                    <Sparkles className="w-4 h-4 stroke-[1.75]" />
                     <span>AI Match Fest</span>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-black uppercase"
-                    style={{ background: 'rgba(32,190,255,0.12)', color: '#20BEFF', border: '1px solid rgba(32,190,255,0.25)' }}>
-                    NEW
+                  <span className="text-[10px] px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold">
+                    AI
                   </span>
                 </Link>
               </>
             )}
 
-            {/* ORGANIZER ROLE LINKS */}
-            {role === 'organizer' && (
-              <>
-                <Link
-                  to="/organizer"
-                  onClick={handleNavClick}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                    isActive('/organizer') 
-                      ? 'bg-kaggle-cyan text-slate-950 shadow-sm' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <PlusCircle className="w-5 h-5" />
-                    <span>Organizer Hub</span>
-                  </div>
-                  <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">
-                    Host
-                  </span>
-                </Link>
-
-                <Link
-                  to="/"
-                  onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                    isActive('/') 
-                      ? 'bg-kaggle-lightcyan/60 dark:bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan font-bold' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <Home className="w-5 h-5" />
-                  <span>Home</span>
-                </Link>
-
-                <Link
-                  to="/events"
-                  onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                    isActive('/events') 
-                      ? 'bg-kaggle-lightcyan/60 dark:bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan font-bold' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <Trophy className="w-5 h-5" />
-                  <span>Explore Events Marketplace</span>
-                </Link>
-              </>
-            )}
-
-            {/* ADMIN ROLE LINKS */}
             {role === 'admin' && (
               <>
                 <Link
                   to="/admin"
                   onClick={handleNavClick}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isActive('/admin') 
-                      ? 'bg-kaggle-cyan text-slate-950 shadow-sm' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#EAEAEA] dark:bg-[#1E1F24] text-slate-900 dark:text-white font-semibold' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <ShieldCheck className="w-5 h-5" />
+                    <ShieldCheck className="w-4 h-4 stroke-[1.75]" />
                     <span>Admin Moderation</span>
                   </div>
-                  <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
                     Admin
                   </span>
                 </Link>
 
                 <Link
-                  to="/"
+                  to="/admin/profile"
                   onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                    isActive('/') 
-                      ? 'bg-kaggle-lightcyan/60 dark:bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan font-bold' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    isActive('/admin/profile')
+                      ? 'bg-[#EAEAEA] dark:bg-[#1E1F24] text-slate-900 dark:text-white font-semibold'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Home className="w-5 h-5" />
+                  <User className="w-4 h-4 stroke-[1.75]" />
+                  <span>My Profile</span>
+                </Link>
+
+                <Link
+                  to="/"
+                  onClick={handleNavClick}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    isActive('/') 
+                      ? 'bg-[#EAEAEA] dark:bg-[#1E1F24] text-slate-900 dark:text-white font-semibold' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Home className="w-4 h-4 stroke-[1.75]" />
                   <span>Home</span>
                 </Link>
 
                 <Link
                   to="/events"
                   onClick={handleNavClick}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isActive('/events') 
-                      ? 'bg-kaggle-lightcyan/60 dark:bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan font-bold' 
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-[#EAEAEA] dark:bg-[#1E1F24] text-slate-900 dark:text-white font-semibold' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Trophy className="w-5 h-5" />
-                  <span>All Competitions</span>
+                  <Trophy className="w-4 h-4 stroke-[1.75]" />
+                  <span>All Events</span>
                 </Link>
               </>
             )}
 
           </div>
 
-          {/* Technical Domain Shortcuts */}
-          <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="px-3 text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">
-              Technical Domains
+          {/* Categories / Technical Domains */}
+          <div className="space-y-1 pt-4 border-t border-[#E5E7EB] dark:border-[#1F2023]">
+            <div className="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+              Categories
             </div>
-            {['Hackathons', 'Artificial Intelligence', 'Robotics', 'Coding Contests', 'UI/UX Design'].map((domain) => (
+            {['Hackathons', 'AI & ML', 'Robotics', 'Coding', 'Design'].map((domain) => (
               <Link
                 key={domain}
-                to={`/events?category=${encodeURIComponent(domain.replace('Artificial ', '').replace(' Contests', ''))}`}
+                to={`/events?category=${encodeURIComponent(domain.replace('AI & ML', 'AI'))}`}
                 onClick={handleNavClick}
-                className="flex items-center justify-between px-3.5 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <span>{domain}</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400 stroke-[1.5]" />
               </Link>
             ))}
           </div>
 
         </div>
 
-        {/* Active User Card Footer */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
-          <div className="flex items-center gap-3">
-            <img 
-              src={user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400'} 
-              alt={user?.name} 
-              className="w-9 h-9 rounded-full border-2 border-kaggle-cyan object-cover"
-            />
-            <div className="truncate">
-              <div className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name || 'Aarav Sharma'}</div>
-              <div className="text-xs text-kaggle-cyan font-semibold capitalize">{role} Account</div>
+        {/* User Account Footer */}
+        <div className="p-3 border-t border-[#E5E7EB] dark:border-[#1F2023] bg-[#F7F7F8] dark:bg-[#121316]">
+          <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-[#EFEFF0] dark:hover:bg-[#18191E] transition-colors">
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-300">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div className="truncate flex-1 min-w-0">
+              <div className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                {user?.name || 'Aarav Sharma'}
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 capitalize">
+                {role} account
+              </div>
             </div>
           </div>
         </div>

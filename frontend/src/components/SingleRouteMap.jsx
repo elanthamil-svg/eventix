@@ -64,6 +64,7 @@ export default function SingleRouteMap({
   venueLat = 17.4455,
   venueLng = 78.3489,
   venueName = 'Host College Venue',
+  mode = 'car',
   onRouteCalculated
 }) {
   const containerRef = useRef(null);
@@ -247,11 +248,8 @@ export default function SingleRouteMap({
 
           {/* Chips row */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 11px', borderRadius: 20, background: '#1A73E8', color: '#fff', fontSize: 11, fontWeight: 700 }}>
-              🚗 Best route
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 11px', borderRadius: 20, background: '#E8F0FE', color: '#1A73E8', fontSize: 11, fontWeight: 600 }}>
-              Via fastest road
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 11px', borderRadius: 20, background: mode === 'bike' ? '#E6FFFA' : '#E8F0FE', color: mode === 'bike' ? '#0D9488' : '#1A73E8', fontSize: 11, fontWeight: 600, border: mode === 'bike' ? '1px solid #99F6E4' : '1px solid #BFDBFE' }}>
+              {mode === 'bike' ? 'Via 2-Wheeler Paved Arterial' : 'Via Fastest Highway'}
             </span>
             {info.steps.length > 0 && (
               <button

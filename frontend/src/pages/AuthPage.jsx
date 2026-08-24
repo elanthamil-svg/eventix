@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   GraduationCap,
-  CalendarDays,
   ShieldCheck,
   Mail,
   Lock,
@@ -30,25 +29,11 @@ const ROLES = [
     demoPwd: 'demo123'
   },
   {
-    key: 'organizer',
-    label: 'Event Manager',
-    emoji: '📢',
-    Icon: CalendarDays,
-    description: 'Create and manage college events, track registrations, and publish announcements.',
-    color: '#10B981',
-    bg: 'rgba(16, 185, 129, 0.08)',
-    border: 'rgba(16, 185, 129, 0.35)',
-    shadow: '0 0 0 4px rgba(16,185,129,0.12)',
-    redirectTo: '/organizer',
-    demoEmail: 'organizer@iitm.ac.in',
-    demoPwd: 'demo123'
-  },
-  {
     key: 'admin',
     label: 'Admin',
     emoji: '🛡️',
     Icon: ShieldCheck,
-    description: 'Moderate events, manage users, and oversee the entire platform.',
+    description: 'Create & manage events, moderate the platform, and oversee all activities.',
     color: '#F59E0B',
     bg: 'rgba(245, 158, 11, 0.08)',
     border: 'rgba(245, 158, 11, 0.35)',

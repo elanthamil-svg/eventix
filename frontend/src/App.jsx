@@ -5,12 +5,13 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
+import EventChatbot from './components/EventChatbot';
 import HomePage from './pages/HomePage';
 import EventsPage from './pages/EventsPage';
 import EventDetailsPage from './pages/EventDetailsPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
-import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminProfilePage from './pages/AdminProfilePage';
 import AuthPage from './pages/AuthPage';
 import AIMatchPage from './pages/AIMatchPage';
 
@@ -25,7 +26,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 
   if (allowedRoles && !allowedRoles.includes(role)) {
     // Redirect to appropriate dashboard if wrong role
-    const redirectMap = { student: '/', organizer: '/organizer', admin: '/admin' };
+    const redirectMap = { student: '/', admin: '/admin' };
     return <Navigate to={redirectMap[role] || '/'} replace />;
   }
 
@@ -35,9 +36,11 @@ function ProtectedRoute({ children, allowedRoles }) {
 // ─── App Shell (with Navbar + Sidebar + Footer) ──────────────────
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const location = useLocation();
+  const isEventDetails = /^\/events\/[^/]+$/.test(location.pathname);
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#F8FAFD', fontFamily: "'Inter', sans-serif" }}>
+    <div className="flex flex-col min-h-screen bg-[#FAFAFA] dark:bg-[#0D0E11] text-[#111827] dark:text-[#F3F4F6] transition-colors duration-200">
       <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex flex-1 w-full max-w-full px-2 sm:px-4 lg:px-6">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -63,14 +66,6 @@ function AppShell() {
               }
             />
             <Route
-              path="/organizer"
-              element={
-                <ProtectedRoute allowedRoles={['organizer']}>
-                  <OrganizerDashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/admin"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
@@ -78,10 +73,19 @@ function AppShell() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/profile"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminProfilePage />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
       </div>
       <Footer />
+      <EventChatbot />
     </div>
   );
 }

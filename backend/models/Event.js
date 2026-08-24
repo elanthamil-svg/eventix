@@ -26,17 +26,17 @@ const eventSchema = new mongoose.Schema({
   },
   collegeName: {
     type: String,
-    required: [true, 'College name is required']
+    default: 'Eventix Admin'
   },
   venue: {
     type: String,
     required: [true, 'Venue location is required']
   },
   location: {
-    address: { type: String, required: true },
-    city: { type: String, required: true },
-    lat: { type: Number, default: 12.9716 },
-    lng: { type: Number, default: 77.5946 },
+    address: { type: String, default: '' },
+    city: { type: String, default: '' },
+    lat: { type: Number, default: 0 },
+    lng: { type: Number, default: 0 },
     googleMapUrl: { type: String, default: '' }
   },
   eventDate: {
@@ -62,9 +62,9 @@ const eventSchema = new mongoose.Schema({
     default: ''
   },
   contactPerson: {
-    name: { type: String, required: true },
-    phone: { type: String, required: true },
-    email: { type: String, required: true }
+    name: { type: String, default: 'Admin' },
+    phone: { type: String, default: '' },
+    email: { type: String, default: '' }
   },
   entryFee: {
     type: Number,

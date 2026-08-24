@@ -38,7 +38,7 @@ export default function EventDetailsPage() {
   const { user } = useAuth();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview'); // overview, safety, accommodations, venue
+  const [activeTab, setActiveTab] = useState('overview'); // overview, brochure, safety, accommodations
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showRegModal, setShowRegModal] = useState(false);
   const [showBrochureModal, setShowBrochureModal] = useState(false);
@@ -47,7 +47,7 @@ export default function EventDetailsPage() {
   const [teamSize, setTeamSize] = useState(1);
   const [accommodations, setAccommodations] = useState([]);
   const [accLoading, setAccLoading] = useState(false);
-  const [userBudget, setUserBudget] = useState(1500);
+  const [userBudget, setUserBudget] = useState(5000);
   const [travelDistance, setTravelDistance] = useState(120);
   const [toastMsg, setToastMsg] = useState('');
 
@@ -69,7 +69,7 @@ export default function EventDetailsPage() {
     setAccLoading(true);
     api.post('/ai/accommodations', {
       eventId: id,
-      userBudget: budgetVal || 1500,
+      userBudget: budgetVal || 5000,
       distanceKm: distVal || 120,
       collegeName: event.collegeName,
       city: event.location?.city,
@@ -106,21 +106,43 @@ export default function EventDetailsPage() {
     }).catch(() => {});
 
     setRegSuccess(true);
-    setToastMsg('🎉 Registration Confirmed! Ticket token generated.');
+    setToastMsg('Registration Confirmed! Ticket token generated.');
   };
 
   const handleShare = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(window.location.href);
-      setToastMsg('Competition link copied!');
+      setToastMsg('Competition link copied to clipboard!');
+    }
+  };
+
+  const formatDeadline = (dateStr) => {
+    if (!dateStr) return 'Rolling Registration';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return 'Registration Open';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return 'Registration Open';
+    }
+  };
+
+  const formatEventDate = (dateStr) => {
+    if (!dateStr) return 'TBA';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return dateStr;
     }
   };
 
   if (loading) {
     return (
-      <div className="py-16 text-center">
-        <div className="w-8 h-8 rounded-full border-2 border-kaggle-cyan border-t-transparent animate-spin mx-auto" />
-        <p className="text-xs text-slate-400 mt-4">Loading Competition Specs...</p>
+      <div className="py-20 text-center space-y-3">
+        <div className="w-6 h-6 border-2 border-slate-900 dark:border-white border-t-transparent animate-spin rounded-full mx-auto" />
+        <p className="text-xs text-slate-500">Loading competition specifications...</p>
       </div>
     );
   }
@@ -128,141 +150,141 @@ export default function EventDetailsPage() {
   if (!event) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto">
       
-      {/* Back Button */}
-      <Link to="/events" className="inline-flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-kaggle-cyan transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to Competitions
-      </Link>
+      {/* Top Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <Link
+          to="/events"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" /> Back to Competitions
+        </Link>
 
-      {/* AI Modules Banner */}
-      <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl flex-wrap"
-        style={{ background: 'linear-gradient(135deg,rgba(32,190,255,0.08) 0%,rgba(139,92,246,0.05) 50%,rgba(16,185,129,0.05) 100%)', border: '1px solid rgba(32,190,255,0.18)' }}>
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5" style={{ color: '#20BEFF' }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#20BEFF' }}>3 AI Modules Active</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsBookmarked(!isBookmarked)}
+            className={`p-2 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              isBookmarked
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-400'
+            }`}
+            title="Save to bookmarks"
+          >
+            <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-current' : ''}`} />
+            <span className="hidden sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
+          </button>
+
+          <button
+            onClick={handleShare}
+            className="p-2 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-400 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            title="Share competition link"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Share</span>
+          </button>
         </div>
-        <div className="h-3 w-px" style={{ background: 'rgba(100,116,139,0.3)' }} />
-        {[
-          { emoji: '🎯', label: 'Travel Safety Score', color: '#10B981' },
-          { emoji: '🏨', label: 'Accommodation AI', color: '#8B5CF6' },
-          { emoji: '🔒', label: 'Route Risk Analysis', color: '#F59E0B' }
-        ].map(({ emoji, label, color }) => (
-          <span key={label} className="flex items-center gap-1 text-xs font-semibold" style={{ color }}>
-            {emoji} {label}
-          </span>
-        ))}
       </div>
 
-      {/* Kaggle Competition Banner Header */}
-      <div className="kaggle-card p-6 border-kaggle-cyan/30 space-y-4 relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Main Header Card */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="kaggle-badge kaggle-badge-cyan">
-                {event.category}
+          {/* Left Details */}
+          <div className="space-y-3 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                {event.category || 'Competition'}
               </span>
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/30">
-                Prize Pool: {event.prizePool}
-              </span>
+              {event.prizePool && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                  Prize Pool: {event.prizePool}
+                </span>
+              )}
+              {event.nirfRank && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400">
+                  NIRF #{event.nirfRank}
+                </span>
+              )}
               <span className="text-xs text-slate-500 dark:text-slate-400">
-                Hosted by <strong className="text-slate-900 dark:text-white">{event.collegeName}</strong>
+                Hosted by <strong className="text-slate-900 dark:text-white font-semibold">{event.collegeName}</strong>
               </span>
             </div>
 
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">{event.title}</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">{event.description}</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+              {event.title}
+            </h1>
+
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
+              {event.description}
+            </p>
           </div>
 
-          {/* Join / Register Action Button & Brochure */}
-          <div className="shrink-0 flex flex-col sm:flex-row md:flex-col gap-2">
+          {/* Right Action Buttons */}
+          <div className="shrink-0 flex flex-col gap-2.5 w-full sm:w-auto min-w-[200px]">
             <button
               onClick={() => setShowRegModal(true)}
-              className="kaggle-btn-primary px-6 py-3 text-xs font-extrabold shadow-md"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 py-3 px-6 rounded-full text-xs font-bold transition-colors shadow-sm text-center"
             >
               Enter Competition / Register
             </button>
             <button
               onClick={() => setShowBrochureModal(true)}
-              className="px-5 py-2.5 text-xs font-bold rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center gap-2 transition-all"
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 py-2.5 px-4 rounded-full text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
             >
-              <Download className="w-4 h-4 text-purple-400" />
+              <Download className="w-3.5 h-3.5" />
               <span>Download Official Brochure</span>
             </button>
-            <div className="text-[11px] text-slate-400 text-center">
-              Deadline: {new Date(event.registrationDeadline).toLocaleDateString()}
+            <div className="text-[11px] text-slate-400 text-center font-medium">
+              Deadline: {formatDeadline(event.registrationDeadline)}
             </div>
           </div>
 
         </div>
 
-        {/* Competition Metrics Line */}
-        <div className="pt-4 border-t border-slate-800 flex flex-wrap gap-6 text-xs text-slate-300">
+        {/* Metrics Row */}
+        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-6 text-xs text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-kaggle-cyan" />
+            <Users className="w-4 h-4 text-slate-400" />
             <span><strong>540</strong> Teams Entered</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 text-emerald-400" />
-            <span>Event Date: <strong>{new Date(event.eventDate).toLocaleDateString()}</strong></span>
+            <Calendar className="w-4 h-4 text-slate-400" />
+            <span>Date: <strong>{formatEventDate(event.eventDate)}</strong></span>
           </div>
+          {event.startTime && (
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-slate-400" />
+              <span>Time: <strong>{event.startTime} {event.endTime ? `- ${event.endTime}` : ''}</strong></span>
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-amber-400" />
-            <span>Time: <strong>{event.startTime} - {event.endTime}</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-purple-400" />
-            <span>Brochure: <strong className="text-purple-300">Available (PDF)</strong></span>
+            <FileText className="w-4 h-4 text-slate-400" />
+            <span>Brochure: <strong>Available (PDF)</strong></span>
           </div>
         </div>
       </div>
 
-      {/* Kaggle Navigation Tabs Bar */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors whitespace-nowrap ${
-            activeTab === 'overview'
-              ? 'bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan border-b-2 border-kaggle-cyan'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
-        >
-          📋 Overview & Rules
-        </button>
-
-        <button
-          onClick={() => setActiveTab('brochure')}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
-            activeTab === 'brochure'
-              ? 'bg-purple-500/10 text-purple-400 border-b-2 border-purple-500'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
-        >
-          <FileText className="w-3.5 h-3.5 text-purple-400" /> Event Brochure
-        </button>
-
-        <button
-          onClick={() => setActiveTab('safety')}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
-            activeTab === 'safety'
-              ? 'bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan border-b-2 border-kaggle-cyan'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
-        >
-          <Compass className="w-3.5 h-3.5 text-cyan-400" /> AI Suited Route Agent
-        </button>
-
-        <button
-          onClick={() => setActiveTab('accommodations')}
-          className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
-            activeTab === 'accommodations'
-              ? 'bg-kaggle-cyan/10 text-kaggle-darkblue dark:text-kaggle-cyan border-b-2 border-kaggle-cyan'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
-        >
-          <BedDouble className="w-3.5 h-3.5 text-kaggle-cyan" /> AI Accommodations
-        </button>
+      {/* Clean Monochrome Navigation Tabs */}
+      <div className="flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
+        {[
+          { key: 'overview', label: 'Overview & Rules' },
+          { key: 'brochure', label: 'Official Brochure' },
+          { key: 'safety', label: 'AI Route & Safety Agent' },
+          { key: 'accommodations', label: 'Accommodations' },
+        ].map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 text-xs rounded-full transition-colors whitespace-nowrap ${
+              activeTab === tab.key
+                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-medium'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Main Grid: Details & Widgets */}
@@ -274,335 +296,186 @@ export default function EventDetailsPage() {
           {/* Tab 1: Overview */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <div className="kaggle-card p-6 space-y-4">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Competition Description</h3>
+              
+              {/* Competition Description Card */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 space-y-4 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Competition Description</h3>
                 <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                   {event.description}
                 </p>
 
-                {/* Official Event Brochure Card */}
-                <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Brochure Callout */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400 shrink-0">
-                      <FileText className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 shrink-0">
+                      <FileText className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-slate-900 dark:text-white">Official Event Brochure</h4>
-                      <p className="text-[11px] text-slate-400">Complete schedule, rules, guidelines, and prize distribution specs.</p>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">Official Event Brochure</h4>
+                      <p className="text-[11px] text-slate-500">Complete schedule, rules, guidelines, and prize specs.</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowBrochureModal(true)}
-                    className="px-4 py-2 text-xs font-bold rounded-lg bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-sm"
+                    className="px-4 py-2 text-xs font-bold rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-sm"
                   >
-                    <Download className="w-3.5 h-3.5" /> Download Official Brochure
+                    <Download className="w-3.5 h-3.5" /> Download Brochure
                   </button>
                 </div>
 
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Venue & Location</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300">{event.venue}, {event.location?.address}</p>
+                {/* Venue & Maps */}
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Venue & Campus Location</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{event.venue}, {event.location?.address || event.location?.city}</p>
                   
                   <a
-                    href={event.location?.googleMapUrl || `https://maps.google.com/?q=${encodeURIComponent(event.venue)}`}
+                    href={event.location?.googleMapUrl || `https://maps.google.com/?q=${encodeURIComponent(event.venue || event.collegeName)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-kaggle-cyan hover:underline"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-900 dark:text-white hover:underline pt-1"
                   >
-                    <Navigation className="w-3.5 h-3.5" /> Open Google Maps Location
+                    <Navigation className="w-3.5 h-3.5" /> Open Google Maps Campus Location
                   </a>
                 </div>
               </div>
 
-              {/* Modules moved below Competition Description */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Action Box */}
-                <div className="kaggle-card p-5 space-y-4">
-                  <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Registration Status</div>
-                  <div className="text-xl font-black text-slate-900 dark:text-white">Registration Open</div>
-
-                  <button
-                    onClick={() => setShowRegModal(true)}
-                    className="w-full kaggle-btn-primary py-3 text-xs font-extrabold shadow-sm"
-                  >
-                    Enter Competition
-                  </button>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setIsBookmarked(!isBookmarked)}
-                      className={`flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1 ${
-                        isBookmarked ? 'bg-amber-500/10 text-amber-500 border-amber-500/30' : 'border-slate-200 dark:border-slate-700 text-slate-400'
-                      }`}
-                    >
-                      <Bookmark className="w-3.5 h-3.5" /> {isBookmarked ? 'Saved' : 'Bookmark'}
-                    </button>
-                    <button
-                      onClick={handleShare}
-                      className="flex-1 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-400 flex items-center justify-center gap-1"
-                    >
-                      <Share2 className="w-3.5 h-3.5" /> Share
-                    </button>
+              {/* Registration & Actions Box */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 space-y-5 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                  <div>
+                    <div className="text-[11px] text-slate-400 uppercase font-semibold tracking-wider">Registration Status</div>
+                    <div className="text-lg font-bold text-slate-900 dark:text-white">Registration Open</div>
                   </div>
-
-                  <div className="pt-3 border-t border-slate-200 dark:border-slate-800 text-xs space-y-1">
-                    <div className="font-bold text-slate-900 dark:text-white">Host Contact</div>
-                    <div className="text-slate-400">{event.contactPerson?.name || 'College Student Cell'}</div>
-                    <div className="text-slate-400">{event.contactPerson?.phone || '+91 98765 43210'}</div>
-                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 self-start sm:self-auto">
+                    Verified Student Event
+                  </span>
                 </div>
 
-                {/* AI Travel Safety Quick Card (compact sidebar version) */}
-                <AISafetyScoreCard event={event} initialDistance={travelDistance} compact={true} />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    onClick={() => setShowRegModal(true)}
+                    className="sm:col-span-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 py-3 rounded-full text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Enter Competition / Register</span>
+                  </button>
+
+                  <button
+                    onClick={handleShare}
+                    className="py-2.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Share2 className="w-3.5 h-3.5" /> Share
+                  </button>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-4">
+                    <div className="space-y-0.5">
+                      <div className="font-semibold text-slate-900 dark:text-white">Host Contact Person</div>
+                      <div className="text-slate-500 dark:text-slate-400">{event.contactPerson?.name || 'Student Affairs Cell'}</div>
+                    </div>
+                    {event.contactPerson?.phone && (
+                      <div className="space-y-0.5 border-l border-slate-200 dark:border-slate-800 pl-4">
+                        <div className="font-semibold text-slate-900 dark:text-white">Helpline Phone</div>
+                        <div className="text-slate-500 dark:text-slate-400">{event.contactPerson.phone}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => setActiveTab('safety')}
+                    className="text-xs font-bold text-slate-700 dark:text-slate-300 hover:underline flex items-center gap-1 self-start sm:self-auto"
+                  >
+                    <Compass className="w-3.5 h-3.5" /> Check Route & Safety ➔
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Tab: Brochure */}
+          {/* Tab 2: Brochure */}
           {activeTab === 'brochure' && (
             <div className="space-y-6">
-              {/* Header bar */}
-              <div className="kaggle-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 shrink-0 font-bold">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white">Official Event Brochure</h3>
-                    <p className="text-xs text-slate-400">Published by {event.collegeName} • Full Rules & Schedule</p>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Official Event Brochure</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Published by {event.collegeName} • Full Rules & Schedule</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowBrochureModal(true)}
-                    className="kaggle-btn-primary text-xs px-4 py-2 font-bold flex items-center gap-1.5"
-                  >
-                    <Download className="w-3.5 h-3.5" /> Download Full Brochure
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowBrochureModal(true)}
+                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs px-5 py-2.5 rounded-full font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5" /> Download Full PDF
+                </button>
               </div>
 
-              {/* Displayed Brochure Sheet */}
-              <div className="bg-slate-900 rounded-2xl border border-purple-500/30 p-6 sm:p-8 space-y-8 relative overflow-hidden shadow-xl">
-                
-                {/* Header */}
-                <div className="border-b border-slate-800 pb-6 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center font-black text-kaggle-cyan text-lg shrink-0">
-                        {event.collegeName ? event.collegeName.substring(0, 2).toUpperCase() : 'CC'}
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold tracking-wider uppercase text-purple-400">{event.collegeName}</h4>
-                        <p className="text-[11px] text-slate-400">Department of Student Affairs & Technology Cell</p>
-                      </div>
+              {/* Brochure Sheet Display */}
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="border-b border-slate-100 dark:border-slate-800 pb-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs uppercase tracking-wider font-bold text-slate-400">{event.collegeName}</span>
+                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-0.5">{event.title}</h2>
                     </div>
-
-                    <div className="flex items-center gap-1.5 text-emerald-400 font-extrabold text-xs bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/30 self-start sm:self-auto">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Official Verified Brochure</span>
-                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                      Verified
+                    </span>
                   </div>
 
-                  {/* Main Event Cover Poster */}
-                  <div className="relative rounded-xl overflow-hidden h-56 sm:h-72 border border-slate-800">
-                    <img 
-                      src={event.poster} 
-                      alt={event.title}
-                      className="w-full h-full object-cover" 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent flex flex-col justify-end p-6">
-                      <span className="kaggle-badge kaggle-badge-cyan self-start mb-2">
-                        {event.category || 'National Competition'}
-                      </span>
-                      <h1 className="text-xl sm:text-3xl font-black text-white leading-tight">
-                        {event.title}
-                      </h1>
+                  {event.poster && (
+                    <div className="rounded-xl overflow-hidden max-h-72 border border-slate-200 dark:border-slate-800">
+                      <img src={event.poster} alt={event.title} className="w-full h-full object-cover" />
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                {/* Key Metrics Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
-                      <Trophy className="w-4 h-4 text-emerald-400" />
-                      <span>Total Prize Pool</span>
-                    </div>
-                    <div className="text-lg font-black text-emerald-400">{event.prizePool}</div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
-                      <Calendar className="w-4 h-4 text-kaggle-cyan" />
-                      <span>Event Date</span>
-                    </div>
-                    <div className="text-sm font-bold text-white">
-                      {new Date(event.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
-                      <Clock className="w-4 h-4 text-amber-400" />
-                      <span>Registration Deadline</span>
-                    </div>
-                    <div className="text-sm font-bold text-amber-400">
-                      {new Date(event.registrationDeadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Detailed Description */}
-                <div className="space-y-3 border-t border-slate-800 pt-6">
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-purple-400" />
-                    <span>Event Structure & Specifications</span>
-                  </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line bg-slate-950/40 p-5 rounded-xl border border-slate-800/80">
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Event Overview & Details</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                     {event.description}
                   </p>
                 </div>
-
-                {/* Rules & Guidelines Section */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Official Rules & Guidelines</span>
-                  </h3>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
-                    <li className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>Open to all undergraduate & postgraduate students nationwide.</span>
-                    </li>
-                    <li className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>Teams can have 1 to 4 members with cross-college participation allowed.</span>
-                    </li>
-                    <li className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>Mandatory college ID card verification at check-in counter.</span>
-                    </li>
-                    <li className="p-3.5 rounded-xl bg-slate-950/50 border border-slate-800 flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>Certificates awarded to all verified registered team attendees.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="space-y-3 border-t border-slate-800 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-400" />
-                      <span>Official Verified Brochure</span>
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-1">Generated dynamically with schedule, rules, eligibility and campus contact details.</p>
-                  </div>
-                  <button
-                    onClick={() => setShowBrochureModal(true)}
-                    className="kaggle-btn-primary text-xs px-5 py-2.5 font-bold flex items-center justify-center gap-2 shrink-0"
-                  >
-                    <Download className="w-4 h-4" /> Download Official Brochure
-                  </button>
-                </div>
-
               </div>
             </div>
           )}
 
-          {/* Tab 2: AI Safety Score */}
+          {/* Tab 3: AI Safety Score */}
           {activeTab === 'safety' && (
             <AISafetyScoreCard event={event} initialDistance={travelDistance} />
           )}
 
-          {/* Tab 3: AI Accommodations */}
+          {/* Tab 4: AI Accommodations */}
           {activeTab === 'accommodations' && (
             <div className="space-y-5">
-              {/* AI Accommodation Header */}
-              <div className="p-5 rounded-2xl relative overflow-hidden"
-                style={{ background: 'linear-gradient(135deg,rgba(139,92,246,0.1) 0%,rgba(32,190,255,0.06) 100%)', border: '1px solid rgba(139,92,246,0.25)' }}>
-                <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
-                  style={{ background: 'radial-gradient(circle,rgba(139,92,246,0.15) 0%,transparent 70%)', transform: 'translate(30%,-30%)' }} />
-                
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+              {/* Accommodation Header */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl" style={{ background: 'rgba(139,92,246,0.15)' }}>
-                      <BedDouble className="w-5 h-5" style={{ color: '#8B5CF6' }} />
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 shrink-0">
+                      <BedDouble className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className="text-base font-black text-slate-900 dark:text-white">Gemini AI Accommodation Agent</h3>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black" style={{ background: '#8B5CF6', color: '#fff' }}>Gemini AI</span>
-                      </div>
-                      <p className="text-xs text-slate-400">Top 5 student hostels, PGs & hotels near {event?.collegeName || 'host campus'} ranked live</p>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">Student Stays & Accommodations</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Top verified hostels, PGs & hotels near {event?.collegeName}</p>
                     </div>
                   </div>
 
                   <button
                     onClick={() => loadAccommodations(userBudget, travelDistance)}
                     disabled={accLoading}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all self-start sm:self-auto"
-                    style={{ background: 'rgba(139,92,246,0.15)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' }}
+                    className="px-4 py-2 rounded-full text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 self-start sm:self-auto disabled:opacity-50"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${accLoading ? 'animate-spin' : ''}`} />
-                    {accLoading ? 'AI Ranking...' : 'Re-rank Stays'}
+                    <span>{accLoading ? 'Fetching...' : 'Refresh Stays'}</span>
                   </button>
                 </div>
-
-                <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 relative z-10" style={{ borderTop: '1px solid rgba(139,92,246,0.15)' }}>
-                  {[{ label: 'Budget Match', val: '✓' }, { label: 'Safety Verified', val: '✓' }, { label: 'Campus Distance', val: `${travelDistance} km` }, { label: 'AI Agent', val: 'Top 5 Ranked' }].map(({ label, val }) => (
-                    <div key={label} className="text-xs">
-                      <span style={{ color: '#64748B' }}>{label}: </span>
-                      <strong style={{ color: '#8B5CF6' }}>{val}</strong>
-                    </div>
-                  ))}
-                </div>
               </div>
-
-              {/* Interactive Budget & Distance Filters */}
-              <div className="kaggle-card p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-purple-400" /> Student Budget:
-                  </span>
-                  {[
-                    { label: 'All Stays', val: 5000 },
-                    { label: 'Under ₹1,000 (PG/Hostel)', val: 1000 },
-                    { label: 'Under ₹2,000 (Standard)', val: 2000 },
-                    { label: 'Under ₹3,500 (Hotel)', val: 3500 }
-                  ].map((b) => (
-                    <button
-                      key={b.val}
-                      onClick={() => setUserBudget(b.val)}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                        userBudget === b.val
-                          ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
-                          : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                      }`}
-                    >
-                      {b.label}
-                    </button>
-                  ))}
-                </div>
-
-              </div>
-
-              {/* Loading Skeleton */}
-              {accLoading && (
-                <div className="space-y-4">
-                  {[1, 2].map((sk) => (
-                    <div key={sk} className="kaggle-card p-5 animate-pulse space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="h-4 w-48 bg-slate-700 rounded" />
-                        <div className="h-4 w-20 bg-slate-700 rounded" />
-                      </div>
-                      <div className="h-32 bg-slate-800/80 rounded-xl" />
-                      <div className="h-3 w-full bg-slate-700/60 rounded" />
-                    </div>
-                  ))}
-                </div>
-              )}
 
               {/* Accommodations List */}
               {!accLoading && accommodations.length > 0 && (
@@ -612,33 +485,20 @@ export default function EventDetailsPage() {
                     .map((acc, i) => (
                       <AIAccommodationCard key={acc.id || i} accommodation={acc} rank={i + 1} />
                     ))}
-                  {accommodations.filter((acc) => !userBudget || userBudget >= 5000 || acc.pricePerNight <= userBudget).length === 0 && (
-                    <div className="kaggle-card p-8 text-center space-y-3">
-                      <p className="text-sm text-slate-400">No accommodations found under ₹{userBudget}/night.</p>
-                      <button
-                        onClick={() => setUserBudget(5000)}
-                        className="kaggle-btn-primary text-xs px-4 py-2"
-                      >
-                        Show All Accommodations
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* Fallback if zero accommodations returned */}
+              {/* Fallback */}
               {!accLoading && accommodations.length === 0 && (
-                <div className="kaggle-card p-8 text-center space-y-4">
-                  <BedDouble className="w-12 h-12 text-purple-400 mx-auto opacity-60" />
-                  <div>
-                    <h4 className="text-sm font-bold text-white">No accommodations loaded yet</h4>
-                    <p className="text-xs text-slate-400 mt-1">Click below to fetch recommended student hostels & hotels near this campus.</p>
-                  </div>
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 text-center space-y-3">
+                  <BedDouble className="w-8 h-8 text-slate-400 mx-auto" />
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">No Stays Found</h4>
+                  <p className="text-xs text-slate-500">Click below to fetch recommended student hostels near campus.</p>
                   <button
                     onClick={() => loadAccommodations(userBudget, travelDistance)}
-                    className="kaggle-btn-primary text-xs px-5 py-2.5 font-bold"
+                    className="px-4 py-2 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold"
                   >
-                    Load AI Recommendations
+                    Fetch Stays
                   </button>
                 </div>
               )}
@@ -647,13 +507,70 @@ export default function EventDetailsPage() {
 
         </div>
 
-        {/* Right Sidebar Widget */}
-        <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+        {/* Right Sidebar: Event Snapshot */}
+        <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
           
-          {/* Event AI Chatbot */}
-          <EventChatbot event={event} />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4 shadow-sm">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Event Snapshot</h4>
+            
+            <div className="space-y-3 text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500">Prize Pool</span>
+                <span className="font-bold text-slate-900 dark:text-white">{event.prizePool || 'Certificate'}</span>
+              </div>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500">Entry Fee</span>
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {event.entryFee === 0 ? 'Free Entry' : `₹${event.entryFee}`}
+                </span>
+              </div>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500">Host College</span>
+                <span className="font-semibold text-slate-900 dark:text-white truncate max-w-[140px] text-right">{event.collegeName}</span>
+              </div>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-slate-500">Venue</span>
+                <span className="font-medium text-slate-600 dark:text-slate-400 truncate max-w-[140px] text-right">{event.venue}</span>
+              </div>
+              {event.nirfRank && (
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-500">NIRF Ranking</span>
+                  <span className="font-bold text-slate-900 dark:text-white">#{event.nirfRank}</span>
+                </div>
+              )}
+            </div>
 
+            {event.contactPerson && (
+              <div className="pt-2 space-y-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                <div className="text-[11px] font-bold text-slate-400">Organizer Contact</div>
+                {event.contactPerson.name && (
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>{event.contactPerson.name}</span>
+                  </div>
+                )}
+                {event.contactPerson.phone && (
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <a href={`tel:${event.contactPerson.phone}`} className="hover:underline">{event.contactPerson.phone}</a>
+                  </div>
+                )}
+                {event.contactPerson.email && (
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <a href={`mailto:${event.contactPerson.email}`} className="hover:underline truncate">{event.contactPerson.email}</a>
+                  </div>
+                )}
+              </div>
+            )}
 
+            <button
+              onClick={() => setShowRegModal(true)}
+              className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 py-2.5 rounded-full text-xs font-bold shadow-sm transition-colors"
+            >
+              Register Now
+            </button>
+          </div>
 
         </div>
 
@@ -661,50 +578,50 @@ export default function EventDetailsPage() {
 
       {/* Registration Modal */}
       {showRegModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="kaggle-card p-6 max-w-md w-full space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
             
             {!regSuccess ? (
               <>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Confirm Registration</h3>
-                <p className="text-xs text-slate-400">{event.title}</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Confirm Registration</h3>
+                <p className="text-xs text-slate-500">{event.title}</p>
 
                 <form onSubmit={handleRegisterSubmit} className="space-y-3 text-xs">
                   <div>
-                    <label className="block text-slate-400 font-semibold mb-1">Team Name (Optional)</label>
+                    <label className="block text-slate-500 font-semibold mb-1">Team Name (Optional)</label>
                     <input 
                       type="text" 
-                      placeholder="e.g. CyberKnights"
+                      placeholder="e.g. CodeForge"
                       value={teamName}
                       onChange={(e) => setTeamName(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-slate-400 font-semibold mb-1">Team Size</label>
+                    <label className="block text-slate-500 font-semibold mb-1">Team Members Count</label>
                     <input 
                       type="number" 
                       min="1" 
                       max="6"
                       value={teamSize}
                       onChange={(e) => setTeamSize(Number(e.target.value))}
-                      className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none"
                     />
                   </div>
 
                   <div className="flex justify-end gap-2 pt-3">
-                    <button type="button" onClick={() => setShowRegModal(false)} className="px-3 py-1.5 text-slate-400 font-bold">Cancel</button>
-                    <button type="submit" className="kaggle-btn-primary text-xs px-4 py-2">Confirm Entry</button>
+                    <button type="button" onClick={() => setShowRegModal(false)} className="px-3 py-1.5 text-slate-500 font-semibold">Cancel</button>
+                    <button type="submit" className="px-5 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 rounded-full font-bold">Confirm Entry</button>
                   </div>
                 </form>
               </>
             ) : (
               <div className="text-center py-4 space-y-3">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Registration Confirmed!</h3>
-                <p className="text-xs text-slate-400">Digital pass added to your dashboard.</p>
-                <button onClick={() => { setShowRegModal(false); setRegSuccess(false); }} className="kaggle-btn-primary text-xs mx-auto px-6 py-2">Close</button>
+                <CheckCircle2 className="w-10 h-10 text-slate-900 dark:text-white mx-auto" />
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Registration Confirmed!</h3>
+                <p className="text-xs text-slate-500">Your registration has been confirmed and added to your dashboard.</p>
+                <button onClick={() => { setShowRegModal(false); setRegSuccess(false); }} className="px-6 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full text-xs font-bold mx-auto">Close</button>
               </div>
             )}
 

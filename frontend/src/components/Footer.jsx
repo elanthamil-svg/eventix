@@ -1,76 +1,78 @@
 import React from 'react';
-import { Sparkles, Heart, Shield, PhoneCall, Mail, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Shield, PhoneCall, Mail, MapPin } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-300 pt-12 pb-8 border-t border-slate-800">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+    <footer className="bg-white dark:bg-[#0D0E11] text-slate-600 dark:text-slate-400 pt-12 pb-8 border-t border-slate-200 dark:border-slate-800 transition-colors duration-200">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           
           {/* Brand & Purpose */}
-          <div className="space-y-4 md:col-span-1">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white tracking-tight">CampusConnect</span>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Smart Inter-College Event Discovery platform backed by AI travel safety scoring, personalized event recommendations, and accommodation planning.
+          <div className="space-y-3">
+            <Link to="/" className="inline-block">
+              <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
+                Eventix
+              </span>
+            </Link>
+            <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Inter-college event discovery platform with verified listings, safety analysis, and personalized AI event matching.
             </p>
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">Explore</h4>
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+              Explore
+            </h4>
             <ul className="space-y-2 text-xs">
-              <li><Link to="/events" className="hover:text-primary-400 transition-colors">Hackathons & Workshops</Link></li>
-              <li><Link to="/events?category=Robotics" className="hover:text-primary-400 transition-colors">Robotics Championships</Link></li>
-              <li><Link to="/events?category=Coding" className="hover:text-primary-400 transition-colors">Coding Contests</Link></li>
-              <li><Link to="/events?category=Design" className="hover:text-primary-400 transition-colors">UI/UX Summits</Link></li>
+              <li><Link to="/events" className="hover:text-slate-900 dark:hover:text-white transition-colors">All Competitions</Link></li>
+              <li><Link to="/events?category=Hackathon" className="hover:text-slate-900 dark:hover:text-white transition-colors">Hackathons & Summits</Link></li>
+              <li><Link to="/events?category=Coding" className="hover:text-slate-900 dark:hover:text-white transition-colors">Coding Contests</Link></li>
+              <li><Link to="/ai-match" className="hover:text-slate-900 dark:hover:text-white transition-colors">AI Match Fest</Link></li>
             </ul>
           </div>
 
-          {/* Student Safety Helpline */}
-          <div>
-            <h4 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Shield className="w-4 h-4 text-emerald-400" /> Student Safety First
+          {/* Student Support & Safety */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+              Student Safety
             </h4>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center gap-2 text-slate-300">
-                <PhoneCall className="w-3.5 h-3.5 text-secondary-500" />
-                <span>24/7 Helpline: 1800-CAMPUS-SAFE</span>
+            <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2">
+                <PhoneCall className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>Helpline: 1800-CAMPUS-SAFE</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <Mail className="w-3.5 h-3.5 text-secondary-500" />
-                <span>safety@campusconnect.edu</span>
+              <div className="flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>support@eventix.edu</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <MapPin className="w-3.5 h-3.5 text-secondary-500" />
-                <span>Verified Inter-College Transit Network</span>
+              <div className="flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>Verified Transit Safety Data</span>
               </div>
             </div>
           </div>
 
-          {/* Technology & AI */}
-          <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">Powered By AI</h4>
-            <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Driven by Google Gemini 2.5 Flash API for real-time safety reasoning and interest matching.
+          {/* Platform Intelligence */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+              Intelligence
+            </h4>
+            <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Personalized semantic ranking and safety scoring evaluated with Gemini AI and local client heuristics.
             </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-primary-400 font-mono">
-              ⚡ Gemini API Integrated
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+              <span>Gemini AI Connected</span>
             </div>
           </div>
 
         </div>
 
-        <div className="pt-8 border-t border-slate-800 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div>© {new Date().getFullYear()} CampusConnect Platform. All rights reserved.</div>
-          <div className="flex items-center gap-1">
-            Built for college students nationwide with <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-          </div>
+        {/* Bottom Bar */}
+        <div className="pt-6 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-400 dark:text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div>© {new Date().getFullYear()} Eventix. All rights reserved.</div>
+          <div>Built for college students nationwide</div>
         </div>
       </div>
     </footer>

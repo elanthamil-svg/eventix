@@ -1,8 +1,3 @@
-/**
- * AIMatchPage.jsx — Dedicated AI Match Fest Module
- * Full-page experience for personalized AI event matching.
- * This is the ONLY place AIRecommendationSection is rendered.
- */
 import React from 'react';
 import { Sparkles, Brain, Zap, Target } from 'lucide-react';
 import AIRecommendationSection from '../components/AIRecommendationSection';
@@ -10,86 +5,65 @@ import AIRecommendationSection from '../components/AIRecommendationSection';
 const FEATURES = [
   {
     icon: Brain,
-    color: '#20BEFF',
-    title: 'Gemini 2.5 Flash AI',
-    desc: 'Google\'s most advanced language model ranks every event against your academic profile with deep semantic understanding.'
+    title: 'Gemini AI Scoring',
+    desc: 'Deep language model scoring evaluated against your academic domain and technical interests.'
   },
   {
     icon: Zap,
-    color: '#10B981',
-    title: 'Instant Local Engine',
-    desc: 'On-device heuristic scoring with multi-factor analysis — runs in milliseconds with no server needed.'
+    title: 'Instant Engine',
+    desc: 'Fast heuristic matching that scores multiple factors in milliseconds with local fallback.'
   },
   {
     icon: Target,
-    color: '#8B5CF6',
     title: '5-Factor Accuracy',
-    desc: 'Interest match, skill applicability, year suitability, department alignment, and opportunity prestige — all weighted.'
+    desc: 'Evaluates interest overlap, skills, year suitability, department, and institute NIRF rank.'
   },
 ];
 
 export default function AIMatchPage() {
   return (
-    <div className="space-y-8" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="space-y-6 max-w-5xl mx-auto">
 
-      {/* ─── Hero Header ─────────────────────────────────────────── */}
-      <div className="relative rounded-2xl overflow-hidden p-8 md:p-10"
-        style={{
-          background: 'linear-gradient(135deg, rgba(32,190,255,0.08) 0%, rgba(139,92,246,0.06) 50%, rgba(16,185,129,0.05) 100%)',
-          border: '1px solid rgba(32,190,255,0.2)'
-        }}>
-
-        {/* Background glowing orbs */}
-        <div className="absolute top-0 right-0 w-80 h-80 pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(32,190,255,0.1) 0%, transparent 70%)', transform: 'translate(30%,-30%)' }} />
-        <div className="absolute bottom-0 left-0 w-64 h-64 pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)', transform: 'translate(-30%,30%)' }} />
-
-        <div className="relative z-10 max-w-3xl">
+      {/* Hero Header */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-7 sm:p-10">
+        <div className="max-w-3xl space-y-5">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5"
-            style={{ background: 'rgba(32,190,255,0.1)', border: '1px solid rgba(32,190,255,0.25)' }}>
-            <Sparkles size={13} style={{ color: '#20BEFF' }} className="animate-pulse" />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#20BEFF', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
-              AI-Powered Personalization Module
-            </span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-slate-500" />
+            AI Personalization Engine
           </div>
 
-          <h1 className="text-slate-900 dark:text-white mb-3"
-            style={{ fontSize: 'clamp(26px,3.5vw,42px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+          {/* Title */}
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
             AI Match Fest
-            <span style={{ color: '#20BEFF' }}> Engine</span>
           </h1>
 
-          <p className="text-slate-500 dark:text-slate-400 mb-6"
-            style={{ fontSize: 15, lineHeight: 1.7, maxWidth: 560 }}>
-            Eventix's most powerful module. Select your interests, year, and department — 
-            our AI ranks every competition and fest across India specifically for you, with 
-            personalized recommendations and detailed explanations.
+          {/* Description */}
+          <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">
+            Select your interests, year of study, and department. Our recommendation engine ranks every competition and fest across India specifically for you with personalized relevance scores.
           </p>
 
-          {/* Feature Pills */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {FEATURES.map(({ icon: Icon, color, title, desc }) => (
-              <div key={title} className="p-4 rounded-xl"
-                style={{ background: `${color}08`, border: `1px solid ${color}20` }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                    style={{ background: `${color}15` }}>
-                    <Icon size={14} style={{ color }} />
+          {/* Feature Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            {FEATURES.map(({ icon: Icon, title, desc }) => (
+              <div
+                key={title}
+                className="p-5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-2.5"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+                    <Icon className="w-4.5 h-4.5 text-slate-700 dark:text-slate-300" size={18} />
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color }} className="dark:text-white">
-                    {title}
-                  </span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white">{title}</span>
                 </div>
-                <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.6 }}>{desc}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ─── AI Recommendation Engine ────────────────────────────── */}
+      {/* AI Recommendation Engine */}
       <AIRecommendationSection />
 
     </div>

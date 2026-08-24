@@ -1185,7 +1185,7 @@ export const getMockAccommodations = (collegeName = '', city = '') => {
         type: 'Hotel',
         rating: 4.8,
         userRatingsTotal: 4120,
-        image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&q=80&w=800',
+        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&q=80&w=800',
         pricePerNight: 2450,
         safetyScore: 97,
         distanceKm: 3.5,

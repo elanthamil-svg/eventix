@@ -3,20 +3,19 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { 
-  Sparkles, 
   Search, 
   Sun, 
   Moon, 
   LogOut, 
   ShieldCheck, 
-  PlusCircle, 
   Menu,
-  Trophy,
-  LayoutDashboard
+  Sparkles,
+  LayoutDashboard,
+  Trophy
 } from 'lucide-react';
 
 export default function Navbar({ onToggleSidebar }) {
-  const { user, logout, switchRoleDemo, role, isAuthenticated } = useAuth();
+  const { user, logout, switchRoleDemo, role } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,158 +37,73 @@ export default function Navbar({ onToggleSidebar }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-kaggle-darkcard/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
-      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-[#121316]/95 backdrop-blur-md border-b border-[#E5E7EB] dark:border-[#1F2023] transition-colors duration-200">
+      <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         
-        {/* Left Brand & Sidebar Toggle */}
+        {/* Left: Brand + Toggle */}
         <div className="flex items-center gap-3">
           {onToggleSidebar && (
             <button
               onClick={onToggleSidebar}
-              className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Toggle Sidebar"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 stroke-[1.75]" />
             </button>
           )}
 
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-kaggle-cyan flex items-center justify-center font-black text-slate-950 text-xl shadow-sm group-hover:scale-105 transition-transform">
-              K
-            </div>
-            <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white font-sans">
-              Campus<span className="text-kaggle-cyan">Connect</span>
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+              Eventix
             </span>
           </Link>
         </div>
 
-        {/* Global Search Bar */}
+        {/* Center: Search Bar */}
         <form onSubmit={handleSearch} className="hidden sm:flex items-center flex-1 max-w-md relative">
-          <Search className="absolute left-3.5 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3.5 w-4 h-4 text-slate-400 stroke-[1.75]" />
           <input
             type="text"
-            placeholder="Search inter-college events, hackathons, colleges..."
+            placeholder="Search events, hackathons, colleges..."
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
-            className="w-full pl-10 pr-12 py-2 bg-slate-100 dark:bg-slate-900 border border-transparent focus:border-kaggle-cyan text-sm rounded-full text-slate-900 dark:text-white focus:outline-none placeholder-slate-400"
+            className="w-full pl-10 pr-10 py-2 bg-slate-50 dark:bg-[#1A1B20] border border-slate-200 dark:border-slate-800 text-xs rounded-full text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition-all placeholder-slate-400"
           />
-          <kbd className="absolute right-3.5 px-1.5 py-0.5 text-xs font-mono text-slate-400 bg-slate-200 dark:bg-slate-800 rounded">
+          <kbd className="absolute right-3.5 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-200/60 dark:bg-slate-800 rounded">
             /
           </kbd>
         </form>
 
-        {/* Desktop Quick Nav Links strictly based on role */}
-        <nav className="hidden lg:flex items-center space-x-2">
-          {role === 'student' && (
-            <Link 
-              to="/dashboard" 
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors ${
-                isActive('/dashboard') 
-                  ? 'bg-kaggle-cyan text-slate-950' 
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Student Dashboard</span>
-            </Link>
-          )}
+        {/* Right Actions */}
+        <div className="flex items-center gap-2.5">
 
-          {role === 'student' && (
-            <Link 
-              to="/ai-match" 
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-all ${
-                isActive('/ai-match') 
-                  ? 'text-white shadow-sm' 
-                  : 'text-kaggle-cyan hover:bg-kaggle-cyan/10'
-              }`}
-              style={isActive('/ai-match') ? { background: 'linear-gradient(90deg,#20BEFF,#8B5CF6)' } : {}}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>AI Match Fest</span>
-            </Link>
-          )}
-
-          <Link 
-            to="/events" 
-            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-              isActive('/events') 
-                ? 'text-kaggle-cyan font-bold' 
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            Explore Events
-          </Link>
-
-          {role === 'organizer' && (
-            <Link 
-              to="/organizer" 
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold text-emerald-500 hover:bg-emerald-500/10 transition-colors ${
-                isActive('/organizer') ? 'bg-emerald-500/20' : ''
-              }`}
-            >
-              Event Manager Hub
-            </Link>
-          )}
-
-          {role === 'admin' && (
-            <Link 
-              to="/admin" 
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold text-amber-500 hover:bg-amber-500/10 transition-colors ${
-                isActive('/admin') ? 'bg-amber-500/20' : ''
-              }`}
-            >
-              Admin Moderation
-            </Link>
-          )}
-        </nav>
-
-        {/* Right Controls: Role Switcher & Profile */}
-        <div className="flex items-center gap-3">
-
-          {/* Quick Create Button for Organizers */}
-          {role === 'organizer' && (
-            <Link
-              to="/organizer"
-              className="kaggle-btn-primary hidden sm:flex text-xs px-3.5 py-1.5 font-bold"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Create Event</span>
-            </Link>
-          )}
-
-          {/* Demo Role Switcher Dropdown */}
+          {/* Role Switcher */}
           <div className="relative">
             <button
               onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:border-kaggle-cyan transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               title="Switch user role"
             >
-              <ShieldCheck className="w-4 h-4 text-kaggle-cyan" />
-              <span className="capitalize">{role} Mode</span>
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span className="capitalize">{role}</span>
             </button>
 
             {roleMenuOpen && (
-              <div className="absolute right-0 mt-2 w-52 rounded-xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 py-2 z-50">
-                <div className="px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-[#15161A] shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-50">
+                <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Switch Active Role
                 </div>
                 <button 
-                  onClick={() => { switchRoleDemo('student'); setRoleMenuOpen(false); }}
-                  className={`w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-kaggle-cyan/10 ${role === 'student' ? 'text-kaggle-cyan font-extrabold' : 'text-slate-700 dark:text-slate-300'}`}
+                  onClick={() => { switchRoleDemo('student'); setRoleMenuOpen(false); navigate('/'); }}
+                  className={`w-full text-left px-3 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${role === 'student' ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}
                 >
-                  🎓 Student Mode
+                  Student Mode
                 </button>
                 <button 
-                  onClick={() => { switchRoleDemo('organizer'); setRoleMenuOpen(false); navigate('/organizer'); }}
-                  className={`w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-kaggle-cyan/10 ${role === 'organizer' ? 'text-kaggle-cyan font-extrabold' : 'text-slate-700 dark:text-slate-300'}`}
+                  onClick={() => { switchRoleDemo('admin'); setRoleMenuOpen(false); navigate('/admin'); }}
+                  className={`w-full text-left px-3 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${role === 'admin' ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}
                 >
-                  📢 Event Manager Mode
-                </button>
-                <button 
-                  onClick={() => { switchRoleDemo('admin'); setRoleMenuOpen(false); }}
-                  className={`w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-kaggle-cyan/10 ${role === 'admin' ? 'text-kaggle-cyan font-extrabold' : 'text-slate-700 dark:text-slate-300'}`}
-                >
-                  🛡️ Admin Moderator Mode
+                  Admin Mode
                 </button>
               </div>
             )}
@@ -198,36 +112,34 @@ export default function Navbar({ onToggleSidebar }) {
           {/* Theme Switcher */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title="Toggle Dark / Light Mode"
+            className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            title="Toggle theme"
           >
-            {isDark ? <Sun className="w-5 h-5 text-accent-400" /> : <Moon className="w-5 h-5 text-slate-700" />}
+            {isDark ? <Sun className="w-4 h-4 stroke-[1.75]" /> : <Moon className="w-4 h-4 stroke-[1.75]" />}
           </button>
 
-          {/* User Profile */}
+          {/* User Profile / Sign In */}
           {user ? (
             <div className="flex items-center gap-2">
               <Link to="/dashboard">
-                <img 
-                  src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400'} 
-                  alt={user.name} 
-                  className="w-9 h-9 rounded-full border-2 border-kaggle-cyan object-cover shadow-sm"
-                />
+                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
               </Link>
               <button 
                 onClick={handleLogout}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                 title="Logout"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4 stroke-[1.75]" />
               </button>
             </div>
           ) : (
             <Link 
               to="/login" 
-              className="kaggle-btn-primary text-xs px-4 py-2 font-bold"
+              className="bg-black dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 text-xs font-semibold px-4 py-1.5 rounded-full transition-colors"
             >
-              Sign In
+              Sign in
             </Link>
           )}
 

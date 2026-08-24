@@ -89,20 +89,39 @@ exports.getEventById = async (req, res) => {
   }
 };
 
-// @desc    Create new event (Organizer)
+// @desc    Create new event (Admin / Organizer)
 // @route   POST /api/events
 exports.createEvent = async (req, res) => {
   try {
+    const body = req.body;
     const eventData = {
-      ...req.body,
+      // Defaults for fields not present in the simplified admin form
+      poster: body.poster || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1200',
+      collegeName: body.collegeName || req.user.college || 'Eventix Admin',
+      registrationDeadline: body.registrationDeadline || body.eventDate || new Date(),
+      startTime: body.startTime || '09:00 AM',
+      endTime: body.endTime || '06:00 PM',
+      contactPerson: body.contactPerson || {
+        name: req.user.name || 'Admin',
+        phone: '',
+        email: req.user.email || ''
+      },
+      location: body.location || {
+        address: body.venue || '',
+        city: body.venue || '',
+        lat: 0,
+        lng: 0
+      },
+      // Spread the rest (overrides defaults if provided)
+      ...body,
       organizer: req.user._id,
-      organizerName: req.user.name || 'Campus Organizer'
+      organizerName: req.user.name || 'Admin'
     };
 
     const newEvent = await Event.create(eventData);
     res.status(201).json({ success: true, data: newEvent });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
