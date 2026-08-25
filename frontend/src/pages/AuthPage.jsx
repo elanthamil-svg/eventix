@@ -1,52 +1,61 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   GraduationCap,
   ShieldCheck,
   Mail,
   Lock,
   ArrowRight,
-  Sparkles,
   Eye,
   EyeOff,
-  Zap
+  Zap,
+  Sun,
+  Moon,
+  Check,
+  Building2,
+  UserCheck
 } from 'lucide-react';
 
 const ROLES = [
   {
     key: 'student',
     label: 'Student',
-    emoji: '🎓',
     Icon: GraduationCap,
-    description: 'Discover events, register for fests, and get AI-powered recommendations.',
-    color: '#20BEFF',
-    bg: 'rgba(32, 190, 255, 0.08)',
-    border: 'rgba(32, 190, 255, 0.35)',
-    shadow: '0 0 0 4px rgba(32,190,255,0.12)',
+    badge: 'Student Portal',
+    description: 'Discover events, register for fests, and get AI-powered recommendations tailored to your academic profile.',
     redirectTo: '/',
     demoEmail: 'student@campusconnect.edu',
-    demoPwd: 'demo123'
+    demoPwd: 'demo123',
+    features: [
+      'Personalized AI Event Matching',
+      'Instant Digital QR Entry Passes',
+      'Travel Safety & Accommodation Guide'
+    ]
   },
   {
     key: 'admin',
     label: 'Admin',
-    emoji: '🛡️',
     Icon: ShieldCheck,
-    description: 'Create & manage events, moderate the platform, and oversee all activities.',
-    color: '#F59E0B',
-    bg: 'rgba(245, 158, 11, 0.08)',
-    border: 'rgba(245, 158, 11, 0.35)',
-    shadow: '0 0 0 4px rgba(245,158,11,0.12)',
+    badge: 'Admin Console',
+    description: 'Create & manage events, review registrations, track live fest analytics, and oversee platform moderation.',
     redirectTo: '/admin',
     demoEmail: 'admin@campusconnect.edu',
-    demoPwd: 'demo123'
+    demoPwd: 'demo123',
+    features: [
+      'Event Creation & Moderation',
+      'Real-time Analytics & Revenue',
+      'Participant & Verification Management'
+    ]
   }
 ];
 
-export default function LoginPage() {
+export default function AuthPage() {
   const navigate = useNavigate();
   const { login, register, switchRoleDemo } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const [step, setStep] = useState('select-role'); // 'select-role' | 'form'
   const [selectedRole, setSelectedRole] = useState(null);
@@ -62,8 +71,15 @@ export default function LoginPage() {
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
     setEmail(role.demoEmail);
+    setPassword(role.demoPwd);
     setStep('form');
     setError('');
+  };
+
+  const handleQuickDemo = (roleKey) => {
+    const roleObj = ROLES.find(r => r.key === roleKey);
+    switchRoleDemo(roleKey);
+    navigate(roleObj ? roleObj.redirectTo : '/');
   };
 
   const handleSubmit = async (e) => {
@@ -73,14 +89,20 @@ export default function LoginPage() {
     try {
       let res;
       if (isLogin) {
-        res = await login(email, password, selectedRole.key);
+        res = await login(email, password, selectedRole?.key || 'student');
       } else {
-        res = await register({ name, email, password, role: selectedRole.key, college });
+        res = await register({
+          name,
+          email,
+          password,
+          role: selectedRole?.key || 'student',
+          college: college || 'National Institute of Technology'
+        });
       }
       if (res?.success) {
-        navigate(selectedRole.redirectTo);
+        navigate(selectedRole?.redirectTo || '/');
       } else {
-        setError('Invalid credentials. Try the Demo Login button.');
+        setError('Invalid credentials. Try the 1-Click Demo Access.');
       }
     } catch {
       setError('Something went wrong. Please try again.');
@@ -89,315 +111,351 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = () => {
-    switchRoleDemo(selectedRole.key);
-    navigate(selectedRole.redirectTo);
-  };
-
-  const role = selectedRole;
-
   return (
-    <div
-      className="min-h-screen flex"
-      style={{ fontFamily: "'Inter', sans-serif", backgroundColor: '#0F1117' }}
-    >
-      {/* ─── Left Panel: Branding ──────────────────────────── */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0F1117 0%, #141B2D 60%, #0D1520 100%)' }}
-      >
-        {/* Background glow */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div style={{
-            position: 'absolute', top: '-10%', left: '-5%',
-            width: '60%', height: '60%',
-            background: 'radial-gradient(circle, rgba(32,190,255,0.06) 0%, transparent 70%)',
-          }} />
-          <div style={{
-            position: 'absolute', bottom: '10%', right: '-10%',
-            width: '50%', height: '50%',
-            background: 'radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%)',
-          }} />
-        </div>
-
-        <div className="relative z-10">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-16">
-            <div style={{
-              width: 40, height: 40, borderRadius: 12,
-              background: '#20BEFF', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', fontWeight: 900, fontSize: 20, color: '#0F1117'
-            }}>E</div>
-            <span style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em' }}>
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0D0E11] text-slate-900 dark:text-slate-100 flex flex-col justify-between transition-colors duration-200">
+      
+      {/* ─── Top Header (Home Page Navbar style) ─── */}
+      <header className="w-full border-b border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-[#121316]/80 backdrop-blur-md sticky top-0 z-30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 group">
+            <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
               Eventix
             </span>
-          </div>
+          </Link>
 
-          {/* Hero Text */}
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ background: 'rgba(32,190,255,0.1)', border: '1px solid rgba(32,190,255,0.2)' }}>
-              <Sparkles size={13} style={{ color: '#20BEFF' }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#20BEFF', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                AI-Powered Event Discovery
-              </span>
-            </div>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            title="Toggle theme"
+          >
+            {isDark ? <Sun className="w-4 h-4 stroke-[1.75]" /> : <Moon className="w-4 h-4 stroke-[1.75]" />}
+          </button>
+        </div>
+      </header>
 
-            <h1 style={{ fontSize: 40, fontWeight: 900, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
-              Connect. Compete.<br />
-              <span style={{ color: '#20BEFF' }}>Achieve.</span>
-            </h1>
+      {/* ─── Main Body ─── */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col justify-center">
+        
+        {/* ─── Hero Section ─── */}
+        <div className="text-center space-y-3 max-w-2xl mx-auto mb-8 sm:mb-10">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+            Connect. Compete. Achieve.
+          </h1>
 
-            <p style={{ fontSize: 15, color: '#94A3B8', lineHeight: 1.7, maxWidth: 380 }}>
-              Discover inter-college fests, hackathons, and competitions — powered by Gemini AI that matches events to your academic profile in real-time.
-            </p>
-          </div>
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 font-normal leading-relaxed">
+            Discover inter-college fests, hackathons, and competitions — matched to your academic profile with AI.
+          </p>
+        </div>
 
-          {/* Stats Row */}
-          <div className="flex items-center gap-8 mt-12">
+        {/* ─── Content Container ─── */}
+        <div className="w-full">
+          <AnimatePresence mode="wait">
+            {step === 'select-role' ? (
+              /* ── Step 1: Neatly Organized 2-Column Role Selection ── */
+              <motion.div
+                key="select-role"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                <div className="text-center">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    Welcome back
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Select your access module to continue
+                  </p>
+                </div>
+
+                {/* 2-Column Grid for Student & Admin */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
+                  {ROLES.map((r) => {
+                    const RoleIcon = r.Icon;
+                    return (
+                      <div
+                        key={r.key}
+                        className="bg-white dark:bg-[#141519] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md transition-all flex flex-col justify-between space-y-6 group"
+                      >
+                        {/* Top Header */}
+                        <div>
+                          <div className="flex items-center justify-between gap-3 mb-4">
+                            <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-900 dark:text-white group-hover:scale-105 transition-transform">
+                              <RoleIcon className="w-5 h-5 stroke-[1.75]" />
+                            </div>
+                            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50">
+                              {r.badge}
+                            </span>
+                          </div>
+
+                          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                            {r.label} Module
+                          </h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed min-h-[40px]">
+                            {r.description}
+                          </p>
+
+                          {/* Features List */}
+                          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                            {r.features.map((feat) => (
+                              <div key={feat} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                                <Check className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0 stroke-[2.5]" />
+                                <span>{feat}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="space-y-2.5 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => handleRoleSelect(r)}
+                            className="w-full py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                          >
+                            <span>Enter as {r.label}</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleQuickDemo(r.key)}
+                            className="w-full py-2 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#1A1B20] text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                            <span>1-Click Demo Login</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="text-center pt-2">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    <UserCheck className="w-3.5 h-3.5" />
+                    <span>Select any module above or use 1-Click Demo for instant access.</span>
+                  </span>
+                </div>
+              </motion.div>
+            ) : (
+              /* ── Step 2: Login / Register Form (Centered & Neatly Organized) ── */
+              <motion.div
+                key="form-step"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="max-w-md mx-auto bg-white dark:bg-[#141519] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6"
+              >
+                {/* Back button + Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => { setStep('select-role'); setError(''); }}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                    <span>Back to Modules</span>
+                  </button>
+
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    {selectedRole && <selectedRole.Icon className="w-3.5 h-3.5 stroke-[2]" />}
+                    <span>{selectedRole?.label} Portal</span>
+                  </div>
+                </div>
+
+                {/* Pill Segmented Switcher */}
+                <div className="flex p-1 bg-slate-100 dark:bg-[#1A1B20] border border-slate-200 dark:border-slate-800 rounded-full">
+                  <button
+                    type="button"
+                    onClick={() => { setIsLogin(true); setError(''); }}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all cursor-pointer ${
+                      isLogin
+                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsLogin(false); setError(''); }}
+                    className={`flex-1 py-1.5 text-xs font-semibold rounded-full transition-all cursor-pointer ${
+                      !isLogin
+                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Create Account
+                  </button>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {!isLogin && (
+                    <>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={name}
+                          onChange={e => setName(e.target.value)}
+                          placeholder="e.g. Aarav Sharma"
+                          className="kaggle-input"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          College / Institution
+                        </label>
+                        <div className="relative">
+                          <Building2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            required
+                            value={college}
+                            onChange={e => setCollege(e.target.value)}
+                            placeholder="e.g. National Institute of Technology"
+                            className="kaggle-input pl-10"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        placeholder="you@college.edu"
+                        className="kaggle-input pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="kaggle-input pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="p-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 text-xs text-rose-600 dark:text-rose-400 font-medium">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <div className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                    ) : (
+                      <>
+                        <span>{isLogin ? `Sign In as ${selectedRole?.label}` : 'Create Account'}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                {/* Instant Demo Access */}
+                <div className="pt-1">
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                    <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      Or Instant Access
+                    </span>
+                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemo(selectedRole?.key || 'student')}
+                    className="w-full mt-2 py-2.5 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#1A1B20] text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    <span>1-Click Demo Login as {selectedRole?.label}</span>
+                  </button>
+                </div>
+
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ─── Highlights / Stat Pills ─── */}
+        <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800/80 max-w-4xl mx-auto w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             {[
-              { label: 'Active Colleges', value: '500+' },
-              { label: 'Prize Pool', value: '₹25L+' },
-              { label: 'AI Accuracy', value: '97%' }
-            ].map(stat => (
-              <div key={stat.label}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>{stat.value}</div>
-                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 500, marginTop: 2 }}>{stat.label}</div>
+              { label: 'Active Colleges', val: '500+' },
+              { label: 'Prize Pool', val: '₹25L+' },
+              { label: 'AI Match Rate', val: '97%' },
+              { label: 'Digital Passes', val: 'Instant QR' }
+            ].map(item => (
+              <div key={item.label} className="p-3 rounded-xl bg-white dark:bg-[#141519] border border-slate-200 dark:border-slate-800/80">
+                <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                  {item.val}
+                </div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                  {item.label}
+                </div>
               </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-6">
+            {['Hackathons', 'Symposiums', 'Travel Safety & Stay', 'AI Team Matching', 'Verified Hosts'].map(tag => (
+              <span
+                key={tag}
+                className="px-3 py-1 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#141519] text-slate-600 dark:text-slate-400"
+              >
+                {tag}
+              </span>
             ))}
           </div>
         </div>
 
-        {/* Bottom Feature Pills */}
-        <div className="relative z-10 flex flex-wrap gap-2">
-          {['AI Recommendations', 'Travel Safety', 'Digital Pass', 'Live Events'].map(feat => (
-            <span key={feat} className="px-3 py-1.5 rounded-full text-xs font-semibold"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#64748B' }}>
-              {feat}
-            </span>
-          ))}
-        </div>
-      </div>
+      </main>
 
-      {/* ─── Right Panel: Auth Form ─────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10"
-        style={{ background: '#0F1117' }}>
+      {/* ─── Minimal Footer ─── */}
+      <footer className="py-4 text-center text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800/80">
+        Eventix &copy; {new Date().getFullYear()} — Smart Inter-College Fest Platform
+      </footer>
 
-        <div className="w-full max-w-md">
-
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
-            <div style={{
-              width: 36, height: 36, borderRadius: 10,
-              background: '#20BEFF', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', fontWeight: 900, fontSize: 18, color: '#0F1117'
-            }}>E</div>
-            <span style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>Eventix</span>
-          </div>
-
-          {step === 'select-role' ? (
-            /* ── Role Selection Step ── */
-            <div className="animate-fade-in-up">
-              <div className="mb-8 text-center">
-                <h2 style={{ fontSize: 26, fontWeight: 800, color: '#F1F5F9', letterSpacing: '-0.03em', marginBottom: 8 }}>
-                  Welcome back
-                </h2>
-                <p style={{ fontSize: 14, color: '#64748B' }}>Select your role to continue</p>
-              </div>
-
-              <div className="space-y-3">
-                {ROLES.map((r) => {
-                  const RoleIcon = r.Icon;
-                  return (
-                    <button
-                      key={r.key}
-                      onClick={() => handleRoleSelect(r)}
-                      className="w-full text-left rounded-2xl p-5 transition-all duration-200 hover:scale-[1.01] group"
-                      style={{
-                        background: r.bg,
-                        border: `1.5px solid ${r.border}`,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: `${r.color}20`, border: `1px solid ${r.color}30` }}>
-                          <RoleIcon size={22} style={{ color: r.color }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span style={{ fontSize: 15, fontWeight: 700, color: '#F1F5F9' }}>{r.emoji} {r.label}</span>
-                          </div>
-                          <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5 }}>{r.description}</p>
-                        </div>
-                        <ArrowRight size={16} style={{ color: r.color, opacity: 0.7 }} className="shrink-0 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-6 p-4 rounded-xl flex items-center gap-3"
-                style={{ background: 'rgba(32,190,255,0.06)', border: '1px solid rgba(32,190,255,0.12)' }}>
-                <Zap size={14} style={{ color: '#20BEFF', flexShrink: 0 }} />
-                <p style={{ fontSize: 12, color: '#64748B' }}>
-                  Select a role to log in with demo credentials. No registration required.
-                </p>
-              </div>
-            </div>
-          ) : (
-            /* ── Login / Register Form Step ── */
-            <div className="animate-fade-in-up">
-              {/* Back */}
-              <button
-                onClick={() => { setStep('select-role'); setError(''); }}
-                className="flex items-center gap-1.5 mb-6 text-sm font-medium transition-colors hover:text-white"
-                style={{ color: '#64748B', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                <ArrowRight size={14} style={{ transform: 'rotate(180deg)' }} />
-                Change role
-              </button>
-
-              {/* Selected Role Badge */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: `${role.color}20`, border: `1px solid ${role.color}30` }}>
-                  <role.Icon size={20} style={{ color: role.color }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#F1F5F9', letterSpacing: '-0.02em' }}>
-                    {role.emoji} {role.label} {isLogin ? 'Sign In' : 'Sign Up'}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#64748B' }}>{role.description.slice(0, 55)}…</div>
-                </div>
-              </div>
-
-              {/* Toggle */}
-              <div className="flex rounded-xl p-1 mb-6"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                {['Sign In', 'Sign Up'].map((label, idx) => (
-                  <button
-                    key={label}
-                    onClick={() => { setIsLogin(idx === 0); setError(''); }}
-                    className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
-                    style={{
-                      background: (isLogin ? idx === 0 : idx === 1) ? role.color : 'transparent',
-                      color: (isLogin ? idx === 0 : idx === 1) ? '#0F1117' : '#64748B',
-                      border: 'none', cursor: 'pointer'
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {!isLogin && (
-                  <>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: 6 }}>Full Name</label>
-                      <input
-                        type="text" required value={name}
-                        onChange={e => setName(e.target.value)}
-                        placeholder="e.g. Aarav Sharma"
-                        className="kaggle-input"
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: 6 }}>College Name</label>
-                      <input
-                        type="text" required value={college}
-                        onChange={e => setCollege(e.target.value)}
-                        placeholder="e.g. NIT Trichy"
-                        className="kaggle-input"
-                      />
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: 6 }}>Email Address</label>
-                  <div className="relative">
-                    <Mail size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
-                    <input
-                      type="email" required value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      placeholder="you@college.edu"
-                      className="kaggle-input"
-                      style={{ paddingLeft: 40 }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8', display: 'block', marginBottom: 6 }}>Password</label>
-                  <div className="relative">
-                    <Lock size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
-                    <input
-                      type={showPassword ? 'text' : 'password'} required value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="kaggle-input"
-                      style={{ paddingLeft: 40, paddingRight: 44 }}
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#475569', padding: 0 }}>
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="rounded-xl px-4 py-3 text-sm"
-                    style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.2)', color: '#FB7185' }}>
-                    {error}
-                  </div>
-                )}
-
-                <button type="submit" disabled={loading}
-                  className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all"
-                  style={{
-                    background: loading ? `${role.color}70` : role.color,
-                    color: '#0F1117', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-                    fontFamily: "'Inter', sans-serif"
-                  }}>
-                  {loading ? (
-                    <div className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                  ) : (
-                    <>
-                      {isLogin ? 'Sign In' : 'Create Account'}
-                      <ArrowRight size={15} />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Demo Quick Login */}
-              <div className="mt-4">
-                <div className="flex items-center gap-3 my-4">
-                  <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
-                  <span style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>or</span>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
-                </div>
-
-                <button
-                  onClick={handleDemoLogin}
-                  className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: `1.5px solid ${role.color}40`,
-                    color: role.color,
-                    cursor: 'pointer',
-                    fontFamily: "'Inter', sans-serif"
-                  }}>
-                  <Zap size={14} />
-                  Quick Demo — {role.label} Access
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

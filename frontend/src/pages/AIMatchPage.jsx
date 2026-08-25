@@ -15,8 +15,8 @@ const FEATURES = [
   },
   {
     icon: Target,
-    title: '5-Factor Accuracy',
-    desc: 'Evaluates interest overlap, skills, year suitability, department, and institute NIRF rank.'
+    title: 'Domain Matching',
+    desc: 'Evaluates interest overlap, technical skills, department alignment, and event domains.'
   },
 ];
 

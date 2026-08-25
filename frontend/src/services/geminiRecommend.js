@@ -317,18 +317,17 @@ export const localHeuristicRecommend = (
 
     // ── Personalized Reason ───────────────────────────────────────
     const fmtInterests = matchedInterestLabels.slice(0, 2).map(i => i.charAt(0).toUpperCase() + i.slice(1));
-    const nirfBadge = evt.nirfRank ? ` (NIRF #${evt.nirfRank})` : '';
     let reason;
     if (isSouthFest && matchedInterestLabels.length >= 1) {
-      reason = `🌴 Top South Indian Fest: ${evt.collegeName}${nirfBadge}'s ${evt.title} directly matches your focus in ${fmtInterests[0] || 'your chosen field'}. Highly ranked institution with excellent peer competitive exposure.`;
+      reason = `Top Regional Fest: ${evt.collegeName}'s ${evt.title} directly matches your focus in ${fmtInterests[0] || 'your chosen field'}. Premier institution with excellent peer competitive exposure.`;
     } else if (matchedInterestLabels.length >= 2) {
-      reason = `🤖 Highly Recommended Match: Directly aligns with your field interests in ${fmtInterests.join(' & ')}. Hosted by ${evt.collegeName}${nirfBadge}, offering premier technical prestige and career portfolio value.`;
+      reason = `Highly Recommended Match: Directly aligns with your field interests in ${fmtInterests.join(' & ')}. Hosted by ${evt.collegeName}, offering premier technical prestige and career portfolio value.`;
     } else if (matchedInterestLabels.length === 1) {
-      reason = `🎯 Field Relevance Match: ${evt.collegeName}${nirfBadge}'s ${evt.category} competition matches your target field of ${fmtInterests[0]}. Top-tier learning and national visibility.`;
+      reason = `Field Relevance Match: ${evt.collegeName}'s ${evt.category} competition matches your target field of ${fmtInterests[0]}. Top-tier learning and national visibility.`;
     } else if (deptScore >= 10) {
-      reason = `🏛️ Department Fit: This ${evt.category} event at ${evt.collegeName}${nirfBadge} offers strong domain networking and hands-on exposure for ${department} students.`;
+      reason = `Department Fit: This ${evt.category} event at ${evt.collegeName} offers strong domain networking and hands-on exposure for ${department} students.`;
     } else {
-      reason = `🌟 Explore & Discover: ${evt.collegeName}${nirfBadge}'s ${evt.category} event provides valuable inter-college competition experience.`;
+      reason = `Explore & Discover: ${evt.collegeName}'s ${evt.category} event provides valuable inter-college competition experience.`;
     }
 
     scoredResults.push({

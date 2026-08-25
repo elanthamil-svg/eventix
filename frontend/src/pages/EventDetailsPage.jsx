@@ -32,6 +32,7 @@ import EventChatbot from '../components/EventChatbot';
 import Toast from '../components/Toast';
 import api, { MOCK_EVENTS, getMockAccommodations } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { downloadEventBrochurePdf } from '../utils/generateBrochurePdf';
 
 export default function EventDetailsPage() {
   const { id } = useParams();
@@ -188,58 +189,20 @@ export default function EventDetailsPage() {
 
       {/* Main Header Card */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-          
-          {/* Left Details */}
-          <div className="space-y-3 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                {event.category || 'Competition'}
-              </span>
-              {event.prizePool && (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                  Prize Pool: {event.prizePool}
-                </span>
-              )}
-              {event.nirfRank && (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400">
-                  NIRF #{event.nirfRank}
-                </span>
-              )}
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                Hosted by <strong className="text-slate-900 dark:text-white font-semibold">{event.collegeName}</strong>
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
-              {event.title}
-            </h1>
-
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
-              {event.description}
-            </p>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Hosted by <strong className="text-slate-900 dark:text-white font-semibold">{event.collegeName}</strong>
+            </span>
           </div>
 
-          {/* Right Action Buttons */}
-          <div className="shrink-0 flex flex-col gap-2.5 w-full sm:w-auto min-w-[200px]">
-            <button
-              onClick={() => setShowRegModal(true)}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 py-3 px-6 rounded-full text-xs font-bold transition-colors shadow-sm text-center"
-            >
-              Enter Competition / Register
-            </button>
-            <button
-              onClick={() => setShowBrochureModal(true)}
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 py-2.5 px-4 rounded-full text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Official Brochure</span>
-            </button>
-            <div className="text-[11px] text-slate-400 text-center font-medium">
-              Deadline: {formatDeadline(event.registrationDeadline)}
-            </div>
-          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+            {event.title}
+          </h1>
 
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-4xl">
+            {event.description}
+          </p>
         </div>
 
         {/* Metrics Row */}
@@ -396,51 +359,252 @@ export default function EventDetailsPage() {
           {/* Tab 2: Brochure */}
           {activeTab === 'brochure' && (
             <div className="space-y-6">
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+              {/* Top Action Bar */}
+              <div className="bg-white dark:bg-[#141519] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 shrink-0 font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 shrink-0 font-bold">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">Official Event Brochure</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Published by {event.collegeName} • Full Rules & Schedule</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Published by {event.collegeName} • Full Rules, Schedule & Guidelines</p>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setShowBrochureModal(true)}
-                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs px-5 py-2.5 rounded-full font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-                >
-                  <Download className="w-3.5 h-3.5" /> Download Full PDF
-                </button>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <button
+                    onClick={() => downloadEventBrochurePdf(event)}
+                    className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs px-5 py-2.5 rounded-full font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download Official PDF
+                  </button>
+                  <button
+                    onClick={() => setShowBrochureModal(true)}
+                    className="border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs px-4 py-2.5 rounded-full font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> Fullscreen View
+                  </button>
+                </div>
               </div>
 
-              {/* Brochure Sheet Display */}
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
+              {/* ─── Full Official Brochure Document Canvas ─── */}
+              <div className="bg-white dark:bg-[#141519] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-10 space-y-8 shadow-sm">
+                
+                {/* Institutional Header Banner */}
                 <div className="border-b border-slate-100 dark:border-slate-800 pb-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs uppercase tracking-wider font-bold text-slate-400">{event.collegeName}</span>
-                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-0.5">{event.title}</h2>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-black text-slate-800 dark:text-slate-200 text-base shrink-0">
+                        {event.collegeName ? event.collegeName.substring(0, 2).toUpperCase() : 'CC'}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold tracking-wider uppercase text-slate-400">{event.collegeName}</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Department of Student Affairs & Technology Cell</p>
+                      </div>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                      Verified
-                    </span>
+
+                    <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 self-start sm:self-auto">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Official Verified Document</span>
+                    </div>
                   </div>
 
+                  <div className="pt-2">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+                      {event.title}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-2 pt-3">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900">
+                        {event.category || 'National Competition'}
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                        On-Campus / In-Person
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                        Team Size: 1 - 4 Members
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Main Event Poster Banner */}
                   {event.poster && (
-                    <div className="rounded-xl overflow-hidden max-h-72 border border-slate-200 dark:border-slate-800">
+                    <div className="rounded-xl overflow-hidden max-h-80 border border-slate-200 dark:border-slate-800 mt-4 shadow-sm">
                       <img src={event.poster} alt={event.title} className="w-full h-full object-cover" />
                     </div>
                   )}
                 </div>
 
+                {/* Key Metrics / Factsheet Grid */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Event Overview & Details</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Key Event Factsheet</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1">
+                      <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                        <Trophy className="w-3.5 h-3.5" /> Total Prize Pool
+                      </span>
+                      <div className="text-base font-bold text-slate-900 dark:text-white">{event.prizePool || 'Certificate & Awards'}</div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1">
+                      <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" /> Event Date & Timing
+                      </span>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white">
+                        {event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'TBA'}
+                      </div>
+                      <div className="text-[11px] text-slate-500">{event.startTime || '09:00 AM'} - {event.endTime || '06:00 PM'}</div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1">
+                      <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5" /> Registration Fee
+                      </span>
+                      <div className="text-base font-bold text-slate-900 dark:text-white">
+                        {event.entryFee === 0 ? 'Free Entry' : `₹${event.entryFee} / team`}
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1">
+                      <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" /> Registration Deadline
+                      </span>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white">
+                        {event.registrationDeadline ? new Date(event.registrationDeadline).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Open'}
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1 col-span-2 sm:col-span-2">
+                      <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" /> Venue & Campus Location
+                      </span>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                        {event.venue || event.location?.address || `${event.collegeName} Main Auditorium`}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Event Overview & Abstract */}
+                <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-6">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Event Overview & Scope</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                     {event.description}
                   </p>
                 </div>
+
+                {/* Tracks & Focus Areas */}
+                {event.tags && event.tags.length > 0 && (
+                  <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-6">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Themes & Focus Tracks</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {event.tags.map(tag => (
+                        <span key={tag} className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rules & Guidelines */}
+                <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-6">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Rules & Participation Guidelines</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600 dark:text-slate-300">
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
+                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Eligibility & Verification</span>
+                      </div>
+                      <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Open to all bona fide college undergraduate and postgraduate students. Valid college ID card is mandatory at the entry gate.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
+                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Team Composition</span>
+                      </div>
+                      <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Teams may consist of 1 to 4 members. Inter-college and inter-department teams are fully permitted.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
+                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Code of Conduct & Ethics</span>
+                      </div>
+                      <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                        All project submissions and competition code must be original. Plagiarism or misconduct will result in immediate disqualification.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
+                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Certificates & Recognition</span>
+                      </div>
+                      <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                        All registered participants who submit their work will receive an Official Verified Certificate of Participation from {event.collegeName}.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Event Schedule & Timeline */}
+                <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-6">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Event Schedule & Milestones</h4>
+                  <div className="space-y-2.5">
+                    {[
+                      { step: 'Phase 01', title: 'Registration & Abstract Submission', desc: 'Register online via CampusConnect and submit project abstract before deadline.' },
+                      { step: 'Phase 02', title: 'On-Campus Check-in & Inauguration', desc: 'Arrive at campus auditorium with digital pass, collect attendee badge & welcome kit.' },
+                      { step: 'Phase 03', title: 'Main Competition & Jury Round', desc: 'Build and present your project before the grand panel of industry & academic judges.' },
+                      { step: 'Phase 04', title: 'Valedictory & Prize Distribution', desc: 'Announcement of winners, certificate awarding, and prize disbursement.' }
+                    ].map(item => (
+                      <div key={item.step} className="p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 flex items-start gap-3">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 shrink-0 mt-0.5">
+                          {item.step}
+                        </span>
+                        <div>
+                          <div className="text-xs font-bold text-slate-900 dark:text-white">{item.title}</div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Official Contact Desk */}
+                <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-6">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Organizing Committee & Helpdesk</h4>
+                  <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white">
+                        {event.contactPerson?.name || `${event.collegeName} Student Council`}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5">Official Event Coordinator</div>
+                      <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-slate-600 dark:text-slate-300">
+                        <span>📞 {event.contactPerson?.phone || '+91 98400 12345'}</span>
+                        <span>✉️ {event.contactPerson?.email || 'events@college.edu'}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => downloadEventBrochurePdf(event)}
+                      className="px-4 py-2 rounded-full text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Save PDF Brochure</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Footer Certification */}
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-6 text-center text-xs text-slate-400">
+                  Digitally certified document • Eventix & CampusConnect Official Inter-College Verification Network
+                </div>
+
               </div>
             </div>
           )}

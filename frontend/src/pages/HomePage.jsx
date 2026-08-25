@@ -111,7 +111,7 @@ export default function HomePage() {
         </div>
 
         {/* 2-Column Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {filteredEvents.slice(0, 6).map(evt => (
             <EventCard
               key={evt._id || evt.id}
