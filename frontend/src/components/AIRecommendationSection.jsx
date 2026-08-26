@@ -295,23 +295,6 @@ export default function AIRecommendationSection({ interests: propInterests }) {
               These topics are used to rank and match events for you.
             </p>
           </div>
-
-          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
-            <button
-              onClick={() => setShowPrefEditor(!showPrefEditor)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <Sliders size={13} /> {showPrefEditor ? 'Close' : 'Preferences'}
-            </button>
-            <button
-              onClick={() => runRecommendationJob(interests, preferences, true)}
-              disabled={status === 'loading'}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-slate-200 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw size={13} className={status === 'loading' ? 'animate-spin' : ''} />
-              Re-match
-            </button>
-          </div>
         </div>
 
         {/* Tag Input */}
@@ -362,13 +345,13 @@ export default function AIRecommendationSection({ interests: propInterests }) {
                 <button
                   key={label}
                   onClick={() => isSelected ? removeInterest(label) : addInterest(label)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150 ${
                     isSelected
                       ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border border-transparent font-bold shadow-sm'
-                      : 'bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
+                      : 'bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  {isSelected ? '✓ ' : '+ '}{label}
+                  {label}
                 </button>
               );
             })}

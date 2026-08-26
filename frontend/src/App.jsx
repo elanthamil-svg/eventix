@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -14,6 +14,23 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminProfilePage from './pages/AdminProfilePage';
 import AuthPage from './pages/AuthPage';
 import AIMatchPage from './pages/AIMatchPage';
+
+// ─── Scroll Restoration ─────────────────────────────────────────
+function ScrollToTop() {
+  const { pathname, search } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [pathname, search]);
+
+  return null;
+}
 
 // ─── Auth-Protected Route wrapper ───────────────────────────────
 function ProtectedRoute({ children, allowedRoles }) {
@@ -95,6 +112,7 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
+          <ScrollToTop />
           <Routes>
             {/* Public login route — full screen, no shell */}
             <Route path="/login" element={<AuthPage />} />

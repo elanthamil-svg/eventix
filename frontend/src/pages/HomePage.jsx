@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
-  Search, ArrowRight, Sparkles, Trophy, Calendar, MapPin
+  Search, ArrowRight, Sparkles, Trophy, Calendar, MapPin, Compass
 } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import api, { MOCK_EVENTS } from '../services/api';
@@ -39,20 +40,41 @@ export default function HomePage() {
     : events.filter(e => e.category === selectedDomain || e.tags?.includes(selectedDomain));
 
   return (
-    <div className="space-y-10 max-w-6xl mx-auto py-4 sm:py-8">
+    <div className="space-y-12 max-w-6xl mx-auto py-4 sm:py-8">
 
-      {/* ─── Hero Section (Minimalist & Centered) ─── */}
-      <div className="text-center space-y-4 max-w-2xl mx-auto pt-4 sm:pt-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
-          Discover college fests, competitions & hackathons
-        </h1>
-        <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 font-normal leading-relaxed">
+      {/* ─── Hero Section (Bold, Elegant Black & Animated) ─── */}
+      <div className="relative text-center max-w-3xl mx-auto pt-6 sm:pt-14 pb-2">
+
+        {/* Main Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.12] sm:leading-[1.14]"
+        >
+          Discover college fests,{<br className="hidden sm:inline" />}{' '}
+          <span>competitions & hackathons</span>
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed"
+        >
           Browse verified events across India, explore tech domains, and get personalized recommendations.
-        </p>
+        </motion.p>
 
         {/* Floating Pill Search Bar */}
-        <form onSubmit={handleSearch} className="pt-3 max-w-xl mx-auto">
-          <div className="relative flex items-center bg-white dark:bg-[#141519] border border-slate-200 dark:border-slate-800 rounded-full shadow-sm hover:border-slate-400 dark:hover:border-slate-700 transition-all p-1.5 pl-4">
+        <motion.form
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          onSubmit={handleSearch}
+          className="pt-6 max-w-xl mx-auto"
+        >
+          <div className="relative flex items-center bg-white dark:bg-[#141519] border border-slate-200 dark:border-slate-800 rounded-full shadow-sm hover:shadow-md hover:border-slate-400 dark:hover:border-slate-700 focus-within:border-slate-900 dark:focus-within:border-slate-100 focus-within:ring-2 focus-within:ring-slate-900/10 dark:focus-within:ring-white/10 transition-all p-1.5 pl-4">
             <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
             <input
               type="text"
@@ -63,53 +85,39 @@ export default function HomePage() {
             />
             <button
               type="submit"
-              className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 p-2.5 rounded-full transition-colors shrink-0"
+              className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-black dark:hover:bg-slate-100 p-2.5 rounded-full transition-all hover:scale-105 active:scale-95 shrink-0 shadow-sm"
               title="Search"
             >
               <ArrowRight className="w-4 h-4 stroke-[2]" />
             </button>
           </div>
-        </form>
+        </motion.form>
 
         {/* Category Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-wrap items-center justify-center gap-1.5 pt-4"
+        >
           {DOMAINS.map(domain => (
             <button
               key={domain}
               onClick={() => setSelectedDomain(domain)}
-              className={`px-3.5 py-1.5 rounded-full text-xs transition-colors ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
                 selectedDomain === domain
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold'
-                  : 'bg-white dark:bg-[#141519] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600'
+                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold shadow-sm scale-105'
+                  : 'bg-white/80 dark:bg-[#141519]/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {domain}
             </button>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* ─── Featured Competitions (2 Columns) ─── */}
       <div className="space-y-4 pt-4">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              Featured Events
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Top events and hackathons from premier institutions
-            </p>
-          </div>
-
-          <Link
-            to="/events"
-            className="text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 transition-colors"
-          >
-            <span>View all</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
         {/* 2-Column Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {filteredEvents.slice(0, 6).map(evt => (
